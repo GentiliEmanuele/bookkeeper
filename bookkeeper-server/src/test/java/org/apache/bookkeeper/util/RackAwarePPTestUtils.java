@@ -1,0 +1,83 @@
+package org.apache.bookkeeper.util;
+
+import org.apache.bookkeeper.client.RackawareEnsemblePlacementPolicy;
+import org.apache.bookkeeper.net.BookieId;
+import org.apache.bookkeeper.net.BookieSocketAddress;
+import org.apache.bookkeeper.proto.BookieAddressResolver;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+public class RackAwarePPTestUtils {
+    /**
+     * Create a topology with n node and m rack. If the n < m the number of the rack is not respected
+     */
+    public static void createNNodeMRackTopology(int n, int m) {
+        StaticDNSResolver.reset();
+        for (int i = 1; i <= n; i++) {
+            StaticDNSResolver.addNodeToRack(String.format("127.0.0.%d", i), String.format("/default-region/r%d", i % m));
+        }
+    }
+
+    /**
+     * Create a BookieSocketAddress and parse it in an BookieId
+     * @param address : address for the bookie socket
+     * @param port : port for the bookie socket
+     * @return the created bookie id
+     */
+    public static BookieId createBookieId(String address, int port) {
+        BookieSocketAddress bookieSocketAddress = new BookieSocketAddress(address, port);
+        return bookieSocketAddress.toBookieId();
+    }
+
+    /**
+     * Create a BookieAddressResolver that return a correspondence for the specified BookieId
+     * @param bookiesCanBeSolved : the number of the bookie that can be solved
+     * @return the created bookieAddressResolver
+     */
+    public static BookieAddressResolver resolveSpecifiedAddress(Set<BookieId> bookiesCanBeSolved) {
+        BookieAddressResolver resolver = mock(BookieAddressResolver.class);
+        when(resolver.resolve(any(BookieId.class))).thenAnswer(invocation -> {
+            BookieId bookieId = invocation.getArgument(0);
+            if (bookiesCanBeSolved.contains(bookieId)) {
+                String [] splitBookieId = bookieId.toString().split(":");
+                return new BookieSocketAddress(splitBookieId[0], Integer.parseInt(splitBookieId[1]));
+            } else throw new BookieAddressResolver.BookieIdNotResolvedException(bookieId, new Exception("Simulated resolution failure for testing"));
+        });
+        return resolver;
+    }
+
+    /**
+     * Create a BookieAddressResolver that resolve @numBookiesCanBeSolved address
+     * @param bookiesIdx : list of the bookies indices that can be solved
+     * @return the created BookieAddressResolver
+     */
+    public static BookieAddressResolver wrapperCreationBookieAddressResolver(List<Integer> bookiesIdx) {
+        Set<BookieId> bookiesCanBeSolved = toBookieIdSet(bookiesIdx);
+        return resolveSpecifiedAddress(bookiesCanBeSolved);
+    }
+
+    /**
+     * Used for construct the read-only and the writable bookie id set
+     * @param bookieIdx indices used for construct the set of bookie
+     * @return the created set
+     */
+    public static Set<BookieId> toBookieIdSet(List<Integer> bookieIdx) {
+        Set<BookieId> bookies = new HashSet<>();
+        for (Integer index : bookieIdx) {
+            BookieId bookieId = createBookieId(String.format("127.0.0.%d", index), 3181);
+            bookies.add(bookieId);
+        }
+        return bookies;
+    }
+
+    public static RackawareEnsemblePlacementPolicy rackAwareEnsemblePlacementPolicyCreation(Optional<Boolean> optEnforceDurability) {
+        return optEnforceDurability.isPresent() ? new RackawareEnsemblePlacementPolicy(optEnforceDurability.get()) : new RackawareEnsemblePlacementPolicy();
+    }
+}

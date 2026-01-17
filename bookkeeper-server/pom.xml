@@ -285,6 +285,7 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
           <trimStackTrace>false</trimStackTrace>
+          <argLine>@{argLine} -Xmx2G -Djava.net.preferIPv4Stack=true</argLine>
           <properties>
             <property>
               <name>listener</name>
@@ -318,6 +319,53 @@
             </goals>
           </execution>
         </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>0.8.11</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>report</id>
+            <phase>test</phase>
+            <goals>
+              <goal>report</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.pitest</groupId>
+        <artifactId>pitest-maven</artifactId>
+        <version>1.15.3</version> <dependencies>
+        <dependency>
+          <groupId>org.pitest</groupId>
+          <artifactId>pitest-junit5-plugin</artifactId>
+          <version>1.2.1</version>
+        </dependency>
+      </dependencies>
+
+        <configuration>
+          <targetClasses>
+            <param>org.apache.bookkeeper.*</param>
+          </targetClasses>
+
+          <targetTests>
+            <param>org.apache.bookkeeper.*</param>
+          </targetTests>
+
+          <outputFormats>
+            <value>HTML</value>
+          </outputFormats>
+
+          <threads>4</threads>
+        </configuration>
       </plugin>
     </plugins>
   </build>
