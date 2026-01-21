@@ -1,433 +1,515 @@
 package org.apache.bookkeeper.util;
 
+import io.netty.util.HashedWheelTimer;
+import io.netty.util.Timeout;
+import io.netty.util.TimerTask;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.ToString;
-import org.apache.bookkeeper.client.BKException;
 import org.apache.bookkeeper.feature.FeatureProvider;
+import org.apache.bookkeeper.proto.BookieAddressResolver;
+import org.apache.bookkeeper.stats.Counter;
+import org.apache.bookkeeper.stats.OpStatsLogger;
+import org.apache.bookkeeper.stats.StatsLogger;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
+
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class ParametersSource {
-    @ToString
+    @Builder
+    @Getter
+    public static class InitializeParameters {
+        // Populate default value
+        @Builder.Default
+        boolean reorderReadsRandom = false;
+        @Builder.Default
+        int reorderThresholdPendingRequests = 0;
+        @Builder.Default
+        boolean isWeighted = false;
+        @Builder.Default
+        int maxWeightMultiple = 0;
+        @Builder.Default
+        boolean ignoreLocalNodeInPlacementPolicy = false;
+
+        // Variable parameters
+        StaticDNSResolver staticDNSResolver;
+        HashedWheelTimer hashedWheelTimer;
+        int stabilizePeriodSeconds;
+        int minNumRacksPerWriteQuorum;
+        boolean enforceMinNumRacksPerWriteQuorum;
+        StatsLogger statsLogger;
+        BookieAddressResolver bookieAddressResolver;
+        Class<? extends Throwable> expectedException;
+    }
+
     @Builder
     @Getter
     public static class PlacementPolicyTestScenario {
-        boolean reorderReadsRandom;
-        int stabilizePeriodSeconds;
-        int reorderThresholdPendingRequests;
-        boolean isWeighted;
-        int maxWeightMultiple;
-        boolean ignoreLocalNodeInPlacementPolicy;
+        InitializeParameters initParams;
         Optional<Boolean> optEnforceDurability;
         Optional<FeatureProvider> optionalFeatureProvider;
-        EnsemblePlacementPolicyType EPPType;
         List<Integer> bookiesCanBeSolved;
         List<Integer> writableBookies;
         List<Integer> readOnlyBookies;
         int numberOfRack;
-        boolean enforceMinNumRacksPerWriteQuorum;
         int ensembleSize;
         int writeQuorumSize;
         int ackQuorumSize;
         List<Integer> excludeBookie;
-        Class<? extends Throwable> expectedException;
+        Class<? extends Throwable> expectedNotEnoughBookies;
     }
+
+
     public static Collection<Object[]> getParametersConfiguration() {
+        // Mock for the timer
+        HashedWheelTimer mockTimer = mock(HashedWheelTimer.class);
+        when(mockTimer.newTimeout(any(TimerTask.class), anyLong(), any(TimeUnit.class)))
+                .thenReturn(mock(Timeout.class));
+        // Mock for the statsLogger
+        // Mock for the stats
+        StatsLogger mockStatsLogger = mock(StatsLogger.class);
+        Counter mockCounter = mock(Counter.class);
+        when(mockStatsLogger.getCounter(anyString())).thenReturn(mockCounter);
+        OpStatsLogger opStatsLogger = mock(OpStatsLogger.class);
+        when(mockStatsLogger.getOpStatsLogger(anyString())).thenReturn(opStatsLogger);
+
         return Arrays.asList(new Object[][] {
                 {
-                        ParametersSource.PlacementPolicyTestScenario.builder().
-                                reorderReadsRandom(false).
-                                stabilizePeriodSeconds(1).
-                                reorderThresholdPendingRequests(1).
-                                isWeighted(false).
-                                maxWeightMultiple(0).
-                                ignoreLocalNodeInPlacementPolicy(false).
+                        PlacementPolicyTestScenario.builder().
+                                initParams(
+                                        InitializeParameters.builder().
+                                                staticDNSResolver(new StaticDNSResolver()).
+                                                hashedWheelTimer(mockTimer).
+                                                stabilizePeriodSeconds(-1).
+                                                minNumRacksPerWriteQuorum(1).
+                                                enforceMinNumRacksPerWriteQuorum(true).
+                                                statsLogger(mockStatsLogger).
+                                                bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
+                                                expectedException(null).
+                                                build()
+                                ).
                                 optEnforceDurability(Optional.empty()).
                                 optionalFeatureProvider(Optional.empty()).
-                                EPPType(EnsemblePlacementPolicyType.RACK_AWARE_ENSEMBLE_PLACEMENT_POLICY).
                                 bookiesCanBeSolved(Arrays.asList(1, 2, 3)).
                                 writableBookies(Arrays.asList(1, 2, 3)).
                                 readOnlyBookies(Collections.emptyList()).
                                 numberOfRack(2).
-                                enforceMinNumRacksPerWriteQuorum(true).
                                 ensembleSize(3).
                                 writeQuorumSize(3).
                                 ackQuorumSize(3).
                                 excludeBookie(Collections.emptyList()).
-                                expectedException(null).
+                                expectedNotEnoughBookies(null).
                                 build()
                 },
                 {
-                        ParametersSource.PlacementPolicyTestScenario.builder().
-                                reorderReadsRandom(false).
-                                stabilizePeriodSeconds(1).
-                                reorderThresholdPendingRequests(1).
-                                isWeighted(false).
-                                maxWeightMultiple(0).
-                                ignoreLocalNodeInPlacementPolicy(false).
+                        PlacementPolicyTestScenario.builder().
+                                initParams(
+                                        InitializeParameters.builder().
+                                                staticDNSResolver(new StaticDNSResolver()).
+                                                hashedWheelTimer(mockTimer).
+                                                stabilizePeriodSeconds(-1).
+                                                minNumRacksPerWriteQuorum(2).
+                                                enforceMinNumRacksPerWriteQuorum(true).
+                                                statsLogger(mockStatsLogger).
+                                                bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
+                                                expectedException(null).
+                                                build()
+                                ).
                                 optEnforceDurability(Optional.empty()).
                                 optionalFeatureProvider(Optional.empty()).
-                                EPPType(EnsemblePlacementPolicyType.RACK_AWARE_ENSEMBLE_PLACEMENT_POLICY).
                                 bookiesCanBeSolved(Arrays.asList(1, 2, 3)).
                                 writableBookies(Arrays.asList(1, 2, 3)).
                                 readOnlyBookies(Collections.emptyList()).
                                 numberOfRack(2).
-                                enforceMinNumRacksPerWriteQuorum(true).
                                 ensembleSize(3).
                                 writeQuorumSize(3).
                                 ackQuorumSize(3).
                                 excludeBookie(Collections.emptyList()).
-                                expectedException(null).
+                                expectedNotEnoughBookies(null).
                                 build()
                 },
                 {
-                        ParametersSource.PlacementPolicyTestScenario.builder().
-                                reorderReadsRandom(false).
-                                stabilizePeriodSeconds(-1).
-                                reorderThresholdPendingRequests(1).
-                                isWeighted(false).
-                                maxWeightMultiple(0).
-                                ignoreLocalNodeInPlacementPolicy(false).
-                                optionalFeatureProvider(Optional.empty()).
-                                optEnforceDurability(Optional.empty()).
-                                EPPType(EnsemblePlacementPolicyType.RACK_AWARE_ENSEMBLE_PLACEMENT_POLICY).
-                                bookiesCanBeSolved(Arrays.asList(1, 2, 3)).
-                                writableBookies(Arrays.asList(1, 2, 3)).
-                                readOnlyBookies(Collections.emptyList()).
-                                numberOfRack(1).
-                                enforceMinNumRacksPerWriteQuorum(true).
-                                ensembleSize(3).
-                                writeQuorumSize(3).
-                                ackQuorumSize(3).
-                                excludeBookie(Collections.emptyList()).
-                                expectedException(BKException.BKNotEnoughBookiesException.class).
-                                build()
-                },
-                {
-                        ParametersSource.PlacementPolicyTestScenario.builder().
-                                reorderReadsRandom(false).
-                                stabilizePeriodSeconds(1).
-                                reorderThresholdPendingRequests(1).
-                                isWeighted(false).
-                                maxWeightMultiple(0).
-                                ignoreLocalNodeInPlacementPolicy(false).
+                        PlacementPolicyTestScenario.builder().
+                                initParams(
+                                        InitializeParameters.builder().
+                                                staticDNSResolver(new StaticDNSResolver()).
+                                                hashedWheelTimer(mockTimer).
+                                                stabilizePeriodSeconds(0).
+                                                minNumRacksPerWriteQuorum(1).
+                                                enforceMinNumRacksPerWriteQuorum(true).
+                                                statsLogger(mockStatsLogger).
+                                                bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
+                                                expectedException(null).
+                                                build()
+                                ).
                                 optEnforceDurability(Optional.empty()).
                                 optionalFeatureProvider(Optional.empty()).
-                                EPPType(EnsemblePlacementPolicyType.RACK_AWARE_ENSEMBLE_PLACEMENT_POLICY).
                                 bookiesCanBeSolved(Arrays.asList(1, 2, 3)).
                                 writableBookies(Arrays.asList(1, 2, 3)).
                                 readOnlyBookies(Collections.emptyList()).
                                 numberOfRack(2).
-                                enforceMinNumRacksPerWriteQuorum(false).
                                 ensembleSize(3).
                                 writeQuorumSize(3).
                                 ackQuorumSize(3).
                                 excludeBookie(Collections.emptyList()).
-                                expectedException(null).
+                                expectedNotEnoughBookies(null).
                                 build()
                 },
                 {
-                        ParametersSource.PlacementPolicyTestScenario.builder().
-                                reorderReadsRandom(false).
-                                stabilizePeriodSeconds(1).
-                                reorderThresholdPendingRequests(1).
-                                isWeighted(false).
-                                maxWeightMultiple(0).
-                                ignoreLocalNodeInPlacementPolicy(false).
+                        PlacementPolicyTestScenario.builder().
+                                initParams(
+                                        InitializeParameters.builder().
+                                                staticDNSResolver(new StaticDNSResolver()).
+                                                hashedWheelTimer(mockTimer).
+                                                stabilizePeriodSeconds(0).
+                                                minNumRacksPerWriteQuorum(2).
+                                                enforceMinNumRacksPerWriteQuorum(true).
+                                                statsLogger(mockStatsLogger).
+                                                bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
+                                                expectedException(null).
+                                                build()
+                                ).
                                 optEnforceDurability(Optional.empty()).
                                 optionalFeatureProvider(Optional.empty()).
-                                EPPType(EnsemblePlacementPolicyType.RACK_AWARE_ENSEMBLE_PLACEMENT_POLICY).
-                                bookiesCanBeSolved(Arrays.asList(1, 2, 3)).
-                                writableBookies(Arrays.asList(1, 2, 3)).
-                                readOnlyBookies(Collections.emptyList()).
-                                numberOfRack(1).
-                                enforceMinNumRacksPerWriteQuorum(false).
-                                ensembleSize(3).
-                                writeQuorumSize(3).
-                                ackQuorumSize(3).
-                                excludeBookie(Collections.emptyList()).
-                                expectedException(null).
-                                build()
-                },
-                {
-                        ParametersSource.PlacementPolicyTestScenario.builder().
-                                reorderReadsRandom(false).
-                                stabilizePeriodSeconds(1).
-                                reorderThresholdPendingRequests(1).
-                                isWeighted(false).
-                                maxWeightMultiple(0).
-                                ignoreLocalNodeInPlacementPolicy(false).
-                                optEnforceDurability(Optional.empty()).
-                                optionalFeatureProvider(Optional.empty()).
-                                EPPType(EnsemblePlacementPolicyType.RACK_AWARE_ENSEMBLE_PLACEMENT_POLICY).
-                                bookiesCanBeSolved(Arrays.asList(1, 2, 3)).
-                                writableBookies(Arrays.asList(1, 2)).
-                                readOnlyBookies(Collections.emptyList()).
-                                numberOfRack(1).
-                                enforceMinNumRacksPerWriteQuorum(true).
-                                ensembleSize(3).
-                                writeQuorumSize(3).
-                                ackQuorumSize(3).
-                                excludeBookie(Collections.emptyList()).
-                                expectedException(BKException.BKNotEnoughBookiesException.class).
-                                build()
-                },
-                {
-                        ParametersSource.PlacementPolicyTestScenario.builder().
-                            reorderReadsRandom(false).
-                            stabilizePeriodSeconds(1).
-                            reorderThresholdPendingRequests(1).
-                            isWeighted(false).
-                            maxWeightMultiple(0).
-                            ignoreLocalNodeInPlacementPolicy(false).
-                            optEnforceDurability(Optional.empty()).
-                            optionalFeatureProvider(Optional.empty()).
-                            EPPType(EnsemblePlacementPolicyType.RACK_AWARE_ENSEMBLE_PLACEMENT_POLICY).
-                            bookiesCanBeSolved(Arrays.asList(1, 2, 3)).
-                            writableBookies(Arrays.asList(1, 2)).
-                            readOnlyBookies(Collections.emptyList()).
-                            numberOfRack(1).
-                            enforceMinNumRacksPerWriteQuorum(false).
-                            ensembleSize(3).
-                            writeQuorumSize(3).
-                            ackQuorumSize(3).
-                            excludeBookie(Collections.emptyList()).
-                            expectedException(BKException.BKNotEnoughBookiesException.class).
-                            build()
-                },
-                {
-                        ParametersSource.PlacementPolicyTestScenario.builder().
-                                reorderReadsRandom(false).
-                                stabilizePeriodSeconds(1).
-                                reorderThresholdPendingRequests(1).
-                                isWeighted(false).
-                                maxWeightMultiple(0).
-                                ignoreLocalNodeInPlacementPolicy(false).
-                                optEnforceDurability(Optional.empty()).
-                                optionalFeatureProvider(Optional.empty()).
-                                EPPType(EnsemblePlacementPolicyType.RACK_AWARE_ENSEMBLE_PLACEMENT_POLICY).
-                                bookiesCanBeSolved(Arrays.asList(1, 2, 3)).
-                                writableBookies(Arrays.asList(1, 2)).
-                                readOnlyBookies(Arrays.asList(2, 3)).
-                                numberOfRack(2).
-                                enforceMinNumRacksPerWriteQuorum(true).
-                                ensembleSize(3).
-                                writeQuorumSize(3).
-                                ackQuorumSize(3).
-                                excludeBookie(Collections.emptyList()).
-                                expectedException(BKException.BKNotEnoughBookiesException.class).
-                                build()
-                },
-                {
-                        ParametersSource.PlacementPolicyTestScenario.builder().
-                                reorderReadsRandom(false).
-                                stabilizePeriodSeconds(1).
-                                reorderThresholdPendingRequests(1).
-                                isWeighted(false).
-                                maxWeightMultiple(0).
-                                ignoreLocalNodeInPlacementPolicy(false).
-                                optEnforceDurability(Optional.empty()).
-                                optionalFeatureProvider(Optional.empty()).
-                                EPPType(EnsemblePlacementPolicyType.RACK_AWARE_ENSEMBLE_PLACEMENT_POLICY).
-                                bookiesCanBeSolved(Arrays.asList(1, 2, 3)).
-                                writableBookies(Arrays.asList(1, 2)).
-                                readOnlyBookies(Arrays.asList(2, 3)).
-                                numberOfRack(2).
-                                enforceMinNumRacksPerWriteQuorum(false).
-                                ensembleSize(3).
-                                writeQuorumSize(3).
-                                ackQuorumSize(3).
-                                excludeBookie(Collections.emptyList()).
-                                expectedException(BKException.BKNotEnoughBookiesException.class).
-                                build()
-                },
-                {
-                        ParametersSource.PlacementPolicyTestScenario.builder().
-                                reorderReadsRandom(false).
-                                stabilizePeriodSeconds(1).
-                                reorderThresholdPendingRequests(1).
-                                isWeighted(false).
-                                maxWeightMultiple(0).
-                                ignoreLocalNodeInPlacementPolicy(false).
-                                optEnforceDurability(Optional.empty()).
-                                optionalFeatureProvider(Optional.empty()).
-                                EPPType(EnsemblePlacementPolicyType.RACK_AWARE_ENSEMBLE_PLACEMENT_POLICY).
-                                bookiesCanBeSolved(Arrays.asList(1, 2, 3)).
-                                writableBookies(Arrays.asList(1, 2)).
-                                readOnlyBookies(Collections.singletonList(3)).
-                                numberOfRack(2).
-                                enforceMinNumRacksPerWriteQuorum(false).
-                                ensembleSize(3).
-                                writeQuorumSize(3).
-                                ackQuorumSize(3).
-                                excludeBookie(Collections.emptyList()).
-                                expectedException(BKException.BKNotEnoughBookiesException.class).
-                                build()
-                },
-                {
-                        ParametersSource.PlacementPolicyTestScenario.builder().
-                                reorderReadsRandom(false).
-                                stabilizePeriodSeconds(1).
-                                reorderThresholdPendingRequests(1).
-                                isWeighted(false).
-                                maxWeightMultiple(0).
-                                ignoreLocalNodeInPlacementPolicy(false).
-                                optEnforceDurability(Optional.empty()).
-                                optionalFeatureProvider(Optional.empty()).
-                                EPPType(EnsemblePlacementPolicyType.RACK_AWARE_ENSEMBLE_PLACEMENT_POLICY).
                                 bookiesCanBeSolved(Arrays.asList(1, 2, 3)).
                                 writableBookies(Arrays.asList(1, 2, 3)).
                                 readOnlyBookies(Collections.emptyList()).
                                 numberOfRack(2).
-                                enforceMinNumRacksPerWriteQuorum(true).
-                                ensembleSize(3).
-                                writeQuorumSize(3).
-                                ackQuorumSize(3).
-                                excludeBookie(Collections.singletonList(3)).
-                                expectedException(BKException.BKNotEnoughBookiesException.class).
-                                build()
-                },
-                {
-                        ParametersSource.PlacementPolicyTestScenario.builder().
-                                reorderReadsRandom(false).
-                                stabilizePeriodSeconds(1).
-                                reorderThresholdPendingRequests(1).
-                                isWeighted(false).
-                                maxWeightMultiple(0).
-                                ignoreLocalNodeInPlacementPolicy(false).
-                                optEnforceDurability(Optional.empty()).
-                                optionalFeatureProvider(Optional.empty()).
-                                EPPType(EnsemblePlacementPolicyType.RACK_AWARE_ENSEMBLE_PLACEMENT_POLICY).
-                                bookiesCanBeSolved(Arrays.asList(1, 2, 3)).
-                                writableBookies(Arrays.asList(1, 2, 3)).
-                                readOnlyBookies(Collections.emptyList()).
-                                numberOfRack(2).
-                                enforceMinNumRacksPerWriteQuorum(false).
-                                ensembleSize(3).
-                                writeQuorumSize(3).
-                                ackQuorumSize(3).
-                                excludeBookie(Collections.singletonList(3)).
-                                expectedException(BKException.BKNotEnoughBookiesException.class).
-                                build()
-                },
-                {
-                        ParametersSource.PlacementPolicyTestScenario.builder().
-                                reorderReadsRandom(false).
-                                stabilizePeriodSeconds(1).
-                                reorderThresholdPendingRequests(1).
-                                isWeighted(false).
-                                maxWeightMultiple(0).
-                                ignoreLocalNodeInPlacementPolicy(false).
-                                optEnforceDurability(Optional.empty()).
-                                optionalFeatureProvider(Optional.empty()).
-                                EPPType(EnsemblePlacementPolicyType.RACK_AWARE_ENSEMBLE_PLACEMENT_POLICY).
-                                bookiesCanBeSolved(Arrays.asList(1, 2)).
-                                writableBookies(Arrays.asList(1, 2, 3)).
-                                readOnlyBookies(Collections.emptyList()).
-                                numberOfRack(2).
-                                enforceMinNumRacksPerWriteQuorum(false).
-                                ensembleSize(3).
-                                writeQuorumSize(3).
-                                ackQuorumSize(3).
-                                excludeBookie(Collections.singletonList(3)).
-                                expectedException(BKException.BKNotEnoughBookiesException.class).
-                                build()
-                },
-
-                {
-                        ParametersSource.PlacementPolicyTestScenario.builder().
-                                reorderReadsRandom(false).
-                                stabilizePeriodSeconds(1).
-                                reorderThresholdPendingRequests(1).
-                                isWeighted(false).
-                                maxWeightMultiple(0).
-                                ignoreLocalNodeInPlacementPolicy(false).
-                                optEnforceDurability(Optional.of(true)).
-                                optionalFeatureProvider(Optional.empty()).
-                                EPPType(EnsemblePlacementPolicyType.RACK_AWARE_ENSEMBLE_PLACEMENT_POLICY).
-                                bookiesCanBeSolved(Arrays.asList(1, 2, 3)).
-                                writableBookies(Arrays.asList(1, 2, 3)).
-                                readOnlyBookies(Collections.emptyList()).
-                                numberOfRack(2).
-                                enforceMinNumRacksPerWriteQuorum(true).
                                 ensembleSize(3).
                                 writeQuorumSize(3).
                                 ackQuorumSize(3).
                                 excludeBookie(Collections.emptyList()).
-                                expectedException(null).
+                                expectedNotEnoughBookies(null).
                                 build()
                 },
                 {
-                        ParametersSource.PlacementPolicyTestScenario.builder().
-                                reorderReadsRandom(false).
-                                stabilizePeriodSeconds(1).
-                                reorderThresholdPendingRequests(1).
-                                isWeighted(false).
-                                maxWeightMultiple(0).
-                                ignoreLocalNodeInPlacementPolicy(false).
-                                optEnforceDurability(Optional.of(false)).
+                        PlacementPolicyTestScenario.builder().
+                                initParams(
+                                        InitializeParameters.builder().
+                                                staticDNSResolver(new StaticDNSResolver()).
+                                                hashedWheelTimer(mockTimer).
+                                                stabilizePeriodSeconds(1).
+                                                minNumRacksPerWriteQuorum(1).
+                                                enforceMinNumRacksPerWriteQuorum(true).
+                                                statsLogger(mockStatsLogger).
+                                                bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
+                                                expectedException(null).
+                                                build()
+                                ).
+                                optEnforceDurability(Optional.empty()).
                                 optionalFeatureProvider(Optional.empty()).
-                                EPPType(EnsemblePlacementPolicyType.RACK_AWARE_ENSEMBLE_PLACEMENT_POLICY).
                                 bookiesCanBeSolved(Arrays.asList(1, 2, 3)).
                                 writableBookies(Arrays.asList(1, 2, 3)).
                                 readOnlyBookies(Collections.emptyList()).
                                 numberOfRack(2).
-                                enforceMinNumRacksPerWriteQuorum(true).
                                 ensembleSize(3).
                                 writeQuorumSize(3).
                                 ackQuorumSize(3).
                                 excludeBookie(Collections.emptyList()).
-                                expectedException(null).
+                                expectedNotEnoughBookies(null).
                                 build()
                 },
                 {
-                        ParametersSource.PlacementPolicyTestScenario.builder().
-                                reorderReadsRandom(false).
-                                stabilizePeriodSeconds(1).
-                                reorderThresholdPendingRequests(1).
-                                isWeighted(false).
-                                maxWeightMultiple(0).
-                                ignoreLocalNodeInPlacementPolicy(false).
+                        PlacementPolicyTestScenario.builder().
+                                initParams(
+                                        InitializeParameters.builder().
+                                                staticDNSResolver(new StaticDNSResolver()).
+                                                hashedWheelTimer(mockTimer).
+                                                stabilizePeriodSeconds(1).
+                                                minNumRacksPerWriteQuorum(2).
+                                                enforceMinNumRacksPerWriteQuorum(true).
+                                                statsLogger(mockStatsLogger).
+                                                bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
+                                                expectedException(null).
+                                                build()
+                                ).
                                 optEnforceDurability(Optional.empty()).
-                                optEnforceDurability(Optional.of(false)).
                                 optionalFeatureProvider(Optional.empty()).
-                                EPPType(EnsemblePlacementPolicyType.RACK_AWARE_ENSEMBLE_PLACEMENT_POLICY).
                                 bookiesCanBeSolved(Arrays.asList(1, 2, 3)).
                                 writableBookies(Arrays.asList(1, 2, 3)).
                                 readOnlyBookies(Collections.emptyList()).
                                 numberOfRack(2).
-                                enforceMinNumRacksPerWriteQuorum(true).
                                 ensembleSize(3).
                                 writeQuorumSize(3).
                                 ackQuorumSize(3).
                                 excludeBookie(Collections.emptyList()).
-                                expectedException(null).
+                                expectedNotEnoughBookies(null).
                                 build()
                 },
                 {
-                        ParametersSource.PlacementPolicyTestScenario.builder().
-                                reorderReadsRandom(false).
-                                stabilizePeriodSeconds(1).
-                                reorderThresholdPendingRequests(1).
-                                isWeighted(false).
-                                maxWeightMultiple(0).
-                                ignoreLocalNodeInPlacementPolicy(false).
+                        PlacementPolicyTestScenario.builder().
+                                initParams(
+                                        InitializeParameters.builder().
+                                                staticDNSResolver(new StaticDNSResolver()).
+                                                hashedWheelTimer(mockTimer).
+                                                stabilizePeriodSeconds(-1).
+                                                minNumRacksPerWriteQuorum(1).
+                                                enforceMinNumRacksPerWriteQuorum(false).
+                                                statsLogger(mockStatsLogger).
+                                                bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
+                                                expectedException(null).
+                                                build()
+                                ).
                                 optEnforceDurability(Optional.empty()).
                                 optionalFeatureProvider(Optional.empty()).
-                                EPPType(EnsemblePlacementPolicyType.RACK_AWARE_ENSEMBLE_PLACEMENT_POLICY).
-                                bookiesCanBeSolved(Arrays.asList(1, 2)).
+                                bookiesCanBeSolved(Arrays.asList(1, 2, 3)).
                                 writableBookies(Arrays.asList(1, 2, 3)).
                                 readOnlyBookies(Collections.emptyList()).
                                 numberOfRack(2).
-                                enforceMinNumRacksPerWriteQuorum(true).
                                 ensembleSize(3).
                                 writeQuorumSize(3).
                                 ackQuorumSize(3).
-                                excludeBookie(Collections.singletonList(3)).
-                                expectedException(BKException.BKNotEnoughBookiesException.class).
+                                excludeBookie(Collections.emptyList()).
+                                expectedNotEnoughBookies(null).
                                 build()
-                }
+                },
+                {
+                        PlacementPolicyTestScenario.builder().
+                                initParams(
+                                        InitializeParameters.builder().
+                                                staticDNSResolver(new StaticDNSResolver()).
+                                                hashedWheelTimer(mockTimer).
+                                                stabilizePeriodSeconds(-1).
+                                                minNumRacksPerWriteQuorum(2).
+                                                enforceMinNumRacksPerWriteQuorum(false).
+                                                statsLogger(mockStatsLogger).
+                                                bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
+                                                expectedException(null).
+                                                build()
+                                ).
+                                optEnforceDurability(Optional.empty()).
+                                optionalFeatureProvider(Optional.empty()).
+                                bookiesCanBeSolved(Arrays.asList(1, 2, 3)).
+                                writableBookies(Arrays.asList(1, 2, 3)).
+                                readOnlyBookies(Collections.emptyList()).
+                                numberOfRack(2).
+                                ensembleSize(3).
+                                writeQuorumSize(3).
+                                ackQuorumSize(3).
+                                excludeBookie(Collections.emptyList()).
+                                expectedNotEnoughBookies(null).
+                                build()
+                },
+                {
+                        PlacementPolicyTestScenario.builder().
+                                initParams(
+                                        InitializeParameters.builder().
+                                                staticDNSResolver(new StaticDNSResolver()).
+                                                hashedWheelTimer(mockTimer).
+                                                stabilizePeriodSeconds(0).
+                                                minNumRacksPerWriteQuorum(1).
+                                                enforceMinNumRacksPerWriteQuorum(false).
+                                                statsLogger(mockStatsLogger).
+                                                bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
+                                                expectedException(null).
+                                                build()
+                                ).
+                                optEnforceDurability(Optional.empty()).
+                                optionalFeatureProvider(Optional.empty()).
+                                bookiesCanBeSolved(Arrays.asList(1, 2, 3)).
+                                writableBookies(Arrays.asList(1, 2, 3)).
+                                readOnlyBookies(Collections.emptyList()).
+                                numberOfRack(2).
+                                ensembleSize(3).
+                                writeQuorumSize(3).
+                                ackQuorumSize(3).
+                                excludeBookie(Collections.emptyList()).
+                                expectedNotEnoughBookies(null).
+                                build()
+                },
+                {
+                        PlacementPolicyTestScenario.builder().
+                                initParams(
+                                        InitializeParameters.builder().
+                                                staticDNSResolver(new StaticDNSResolver()).
+                                                hashedWheelTimer(mockTimer).
+                                                stabilizePeriodSeconds(0).
+                                                minNumRacksPerWriteQuorum(2).
+                                                enforceMinNumRacksPerWriteQuorum(false).
+                                                statsLogger(mockStatsLogger).
+                                                bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
+                                                expectedException(null).
+                                                build()
+                                ).
+                                optEnforceDurability(Optional.empty()).
+                                optionalFeatureProvider(Optional.empty()).
+                                bookiesCanBeSolved(Arrays.asList(1, 2, 3)).
+                                writableBookies(Arrays.asList(1, 2, 3)).
+                                readOnlyBookies(Collections.emptyList()).
+                                numberOfRack(2).
+                                ensembleSize(3).
+                                writeQuorumSize(3).
+                                ackQuorumSize(3).
+                                excludeBookie(Collections.emptyList()).
+                                expectedNotEnoughBookies(null).
+                                build()
+                },
+                {
+                        PlacementPolicyTestScenario.builder().
+                                initParams(
+                                        InitializeParameters.builder().
+                                                staticDNSResolver(new StaticDNSResolver()).
+                                                hashedWheelTimer(mockTimer).
+                                                stabilizePeriodSeconds(1).
+                                                minNumRacksPerWriteQuorum(1).
+                                                enforceMinNumRacksPerWriteQuorum(false).
+                                                statsLogger(mockStatsLogger).
+                                                bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
+                                                expectedException(null).
+                                                build()
+                                ).
+                                optEnforceDurability(Optional.empty()).
+                                optionalFeatureProvider(Optional.empty()).
+                                bookiesCanBeSolved(Arrays.asList(1, 2, 3)).
+                                writableBookies(Arrays.asList(1, 2, 3)).
+                                readOnlyBookies(Collections.emptyList()).
+                                numberOfRack(2).
+                                ensembleSize(3).
+                                writeQuorumSize(3).
+                                ackQuorumSize(3).
+                                excludeBookie(Collections.emptyList()).
+                                expectedNotEnoughBookies(null).
+                                build()
+                },
+                {
+                        PlacementPolicyTestScenario.builder().
+                                initParams(
+                                        InitializeParameters.builder().
+                                                staticDNSResolver(new StaticDNSResolver()).
+                                                hashedWheelTimer(mockTimer).
+                                                stabilizePeriodSeconds(1).
+                                                minNumRacksPerWriteQuorum(2).
+                                                enforceMinNumRacksPerWriteQuorum(false).
+                                                statsLogger(mockStatsLogger).
+                                                bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
+                                                expectedException(null).
+                                                build()
+                                ).
+                                optEnforceDurability(Optional.empty()).
+                                optionalFeatureProvider(Optional.empty()).
+                                bookiesCanBeSolved(Arrays.asList(1, 2, 3)).
+                                writableBookies(Arrays.asList(1, 2, 3)).
+                                readOnlyBookies(Collections.emptyList()).
+                                numberOfRack(2).
+                                ensembleSize(3).
+                                writeQuorumSize(3).
+                                ackQuorumSize(3).
+                                excludeBookie(Collections.emptyList()).
+                                expectedNotEnoughBookies(null).
+                                build()
+                },
+                {
+                        PlacementPolicyTestScenario.builder().
+                                initParams(
+                                        InitializeParameters.builder().
+                                                staticDNSResolver(null).
+                                                hashedWheelTimer(mockTimer).
+                                                stabilizePeriodSeconds(1).
+                                                minNumRacksPerWriteQuorum(2).
+                                                enforceMinNumRacksPerWriteQuorum(false).
+                                                statsLogger(mockStatsLogger).
+                                                bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
+                                                expectedException(NullPointerException.class).
+                                                build()
+                                ).
+                                optEnforceDurability(Optional.empty()).
+                                optionalFeatureProvider(Optional.empty()).
+                                bookiesCanBeSolved(Arrays.asList(1, 2, 3)).
+                                writableBookies(Arrays.asList(1, 2, 3)).
+                                readOnlyBookies(Collections.emptyList()).
+                                numberOfRack(2).
+                                ensembleSize(3).
+                                writeQuorumSize(3).
+                                ackQuorumSize(3).
+                                excludeBookie(Collections.emptyList()).
+                                expectedNotEnoughBookies(null).
+                                build()
+                },
+                {
+                        PlacementPolicyTestScenario.builder().
+                                initParams(
+                                        InitializeParameters.builder().
+                                                staticDNSResolver(new StaticDNSResolver()).
+                                                hashedWheelTimer(null).
+                                                stabilizePeriodSeconds(1).
+                                                minNumRacksPerWriteQuorum(2).
+                                                enforceMinNumRacksPerWriteQuorum(false).
+                                                statsLogger(mockStatsLogger).
+                                                bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
+                                                expectedException(null).
+                                                build()
+                                ).
+                                optEnforceDurability(Optional.empty()).
+                                optionalFeatureProvider(Optional.empty()).
+                                bookiesCanBeSolved(Arrays.asList(1, 2, 3)).
+                                writableBookies(Arrays.asList(1, 2, 3)).
+                                readOnlyBookies(Collections.emptyList()).
+                                numberOfRack(2).
+                                ensembleSize(3).
+                                writeQuorumSize(3).
+                                ackQuorumSize(3).
+                                excludeBookie(Collections.emptyList()).
+                                expectedNotEnoughBookies(null).
+                                build()
+                },
+                {
+                        PlacementPolicyTestScenario.builder().
+                                initParams(
+                                        InitializeParameters.builder().
+                                                staticDNSResolver(new StaticDNSResolver()).
+                                                hashedWheelTimer(mockTimer).
+                                                stabilizePeriodSeconds(1).
+                                                minNumRacksPerWriteQuorum(2).
+                                                enforceMinNumRacksPerWriteQuorum(false).
+                                                statsLogger(null).
+                                                bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
+                                                expectedException(NullPointerException.class).
+                                                build()
+                                ).
+                                optEnforceDurability(Optional.empty()).
+                                optionalFeatureProvider(Optional.empty()).
+                                bookiesCanBeSolved(Arrays.asList(1, 2, 3)).
+                                writableBookies(Arrays.asList(1, 2, 3)).
+                                readOnlyBookies(Collections.emptyList()).
+                                numberOfRack(2).
+                                ensembleSize(3).
+                                writeQuorumSize(3).
+                                ackQuorumSize(3).
+                                excludeBookie(Collections.emptyList()).
+                                expectedNotEnoughBookies(null).
+                                build()
+                },
+                {
+                        PlacementPolicyTestScenario.builder().
+                                initParams(
+                                        InitializeParameters.builder().
+                                                staticDNSResolver(new StaticDNSResolver()).
+                                                hashedWheelTimer(mockTimer).
+                                                stabilizePeriodSeconds(1).
+                                                minNumRacksPerWriteQuorum(2).
+                                                enforceMinNumRacksPerWriteQuorum(false).
+                                                statsLogger(mockStatsLogger).
+                                                bookieAddressResolver(null).
+                                                expectedException(IllegalStateException.class).
+                                                build()
+                                ).
+                                optEnforceDurability(Optional.empty()).
+                                optionalFeatureProvider(Optional.empty()).
+                                bookiesCanBeSolved(Arrays.asList(1, 2, 3)).
+                                writableBookies(Arrays.asList(1, 2, 3)).
+                                readOnlyBookies(Collections.emptyList()).
+                                numberOfRack(2).
+                                ensembleSize(3).
+                                writeQuorumSize(3).
+                                ackQuorumSize(3).
+                                excludeBookie(Collections.emptyList()).
+                                expectedNotEnoughBookies(null).
+                                build()
+                },
         });
     }
 }
