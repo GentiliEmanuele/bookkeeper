@@ -1,5 +1,6 @@
 package org.apache.bookkeeper.client;
 
+import org.apache.bookkeeper.net.BookieId;
 import org.apache.bookkeeper.util.ParametersSource;
 import org.apache.bookkeeper.util.RackAwarePPTestUtils;
 import org.junit.Before;
@@ -35,7 +36,7 @@ public class RackAwareEnsemblePlacementPolicyTest {
             scenario.getInitParams().getStaticDNSResolver().setBookieAddressResolver(scenario.getInitParams().getBookieAddressResolver());
 
         // Create ad initialize the policy with current params
-        policy = RackAwarePPTestUtils.rackAwareEnsemblePlacementPolicyCreation(scenario.getOptEnforceDurability());
+        policy = RackAwarePPTestUtils.rackAwareEnsemblePlacementPolicyCreation(Optional.of(false));
         if (scenario.getInitParams().getExpectedException() == null) {
             initializeResult = policy.initialize(
                     scenario.getInitParams().getStaticDNSResolver(),
@@ -104,5 +105,36 @@ public class RackAwareEnsemblePlacementPolicyTest {
                 Assertions.assertNull(policy.slave);
             }
         }
+    }
+
+    @Test
+    public void testOnClusterChange() {
+        // Parse integer id in BookieId
+        Set<BookieId> startWritableBookies = RackAwarePPTestUtils.toBookieIdSet(scenario.getOnClusterChangesParams().getStartWritableBookies());
+        Set<BookieId> startReadOnlyBookies = RackAwarePPTestUtils.toBookieIdSet(scenario.getOnClusterChangesParams().getStartReadOnlyBookies());
+
+        // If the initialization thrown an exception the execution of onClusterChange thrown a NullPointerException
+        if (scenario.getInitParams().getExpectedException() == null) {
+            policy.onClusterChanged(startWritableBookies, startReadOnlyBookies);
+
+            Set<BookieId> endWritableBookies = RackAwarePPTestUtils.toBookieIdSet(scenario.getOnClusterChangesParams().getEndWritableBookies());
+            Set<BookieId> endReadOnlyBookies = RackAwarePPTestUtils.toBookieIdSet(scenario.getOnClusterChangesParams().getEndReadOnlyBookies());
+
+            Set<BookieId> deadBookies = policy.onClusterChanged(endWritableBookies, endReadOnlyBookies);
+            Set<BookieId> expectedDeadBookies = RackAwarePPTestUtils.toBookieIdSet(scenario.getOnClusterChangesParams().getExpectedDeadBookies());
+
+            Assertions.assertNotNull(deadBookies);
+            Assertions.assertEquals(deadBookies, expectedDeadBookies);
+
+        } else {
+            Assertions.assertThrows(NullPointerException.class, () -> {
+                policy.onClusterChanged(startWritableBookies, startReadOnlyBookies);
+            });
+        }
+    }
+
+    @Test
+    public void testNewEnsemble() {
+
     }
 }

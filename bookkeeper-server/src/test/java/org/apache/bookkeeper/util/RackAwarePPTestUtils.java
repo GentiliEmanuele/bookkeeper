@@ -5,16 +5,23 @@ import org.apache.bookkeeper.net.BookieId;
 import org.apache.bookkeeper.net.BookieSocketAddress;
 import org.apache.bookkeeper.proto.BookieAddressResolver;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class RackAwarePPTestUtils {
+    private static Map<Integer, BookieId> bookieIdMap = new HashMap<>();
+
+    public static BookieId getBookieByIndex(int index) {
+        if (bookieIdMap.containsKey(index) && index != -1) {
+            return bookieIdMap.get(index);
+        } else {
+            return null;
+        }
+    }
+
     /**
      * Create a topology with n node and m rack. If the n < m the number of the rack is not respected
      */
@@ -27,13 +34,19 @@ public class RackAwarePPTestUtils {
 
     /**
      * Create a BookieSocketAddress and parse it in an BookieId
+     * @param index : index correspondent to the bookie id
      * @param address : address for the bookie socket
      * @param port : port for the bookie socket
      * @return the created bookie id
      */
-    public static BookieId createBookieId(String address, int port) {
-        BookieSocketAddress bookieSocketAddress = new BookieSocketAddress(address, port);
-        return bookieSocketAddress.toBookieId();
+    public static BookieId createBookieId(int index, String address, int port) {
+        if (bookieIdMap.containsKey(index)) {
+            return bookieIdMap.get(index);
+        } else {
+            BookieSocketAddress bookieSocketAddress = new BookieSocketAddress(address, port);
+            bookieIdMap.put(index, bookieSocketAddress.toBookieId());
+            return bookieSocketAddress.toBookieId();
+        }
     }
 
     /**
@@ -71,7 +84,7 @@ public class RackAwarePPTestUtils {
     public static Set<BookieId> toBookieIdSet(List<Integer> bookieIdx) {
         Set<BookieId> bookies = new HashSet<>();
         for (Integer index : bookieIdx) {
-            BookieId bookieId = createBookieId(String.format("127.0.0.%d", index), 3181);
+            BookieId bookieId = createBookieId(index, String.format("127.0.0.%d", index), 3181);
             bookies.add(bookieId);
         }
         return bookies;

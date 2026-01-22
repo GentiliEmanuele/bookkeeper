@@ -48,19 +48,31 @@ public class ParametersSource {
 
     @Builder
     @Getter
-    public static class PlacementPolicyTestScenario {
-        InitializeParameters initParams;
-        Optional<Boolean> optEnforceDurability;
-        Optional<FeatureProvider> optionalFeatureProvider;
-        List<Integer> bookiesCanBeSolved;
-        List<Integer> writableBookies;
-        List<Integer> readOnlyBookies;
-        int numberOfRack;
+    public static class OnClusterChangesParameters {
+        List<Integer> startWritableBookies;
+        List<Integer> startReadOnlyBookies;
+        List<Integer> endWritableBookies;
+        List<Integer> endReadOnlyBookies;
+        List<Integer> expectedDeadBookies;
+    }
+
+    @Builder
+    @Getter
+    public static class NewEnsembleParameters {
         int ensembleSize;
         int writeQuorumSize;
         int ackQuorumSize;
+        Map<String, byte[]> customMetadata;
         List<Integer> excludeBookie;
         Class<? extends Throwable> expectedNotEnoughBookies;
+    }
+
+    @Builder
+    @Getter
+    public static class PlacementPolicyTestScenario {
+        InitializeParameters initParams;
+        OnClusterChangesParameters onClusterChangesParams;
+        NewEnsembleParameters ensembleParams;
     }
 
 
@@ -77,439 +89,265 @@ public class ParametersSource {
         OpStatsLogger opStatsLogger = mock(OpStatsLogger.class);
         when(mockStatsLogger.getOpStatsLogger(anyString())).thenReturn(opStatsLogger);
 
-        return Arrays.asList(new Object[][] {
-                {
-                        PlacementPolicyTestScenario.builder().
-                                initParams(
-                                        InitializeParameters.builder().
-                                                staticDNSResolver(new StaticDNSResolver()).
-                                                hashedWheelTimer(mockTimer).
-                                                stabilizePeriodSeconds(-1).
-                                                minNumRacksPerWriteQuorum(1).
-                                                enforceMinNumRacksPerWriteQuorum(true).
-                                                statsLogger(mockStatsLogger).
-                                                bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
-                                                expectedException(null).
-                                                build()
-                                ).
-                                optEnforceDurability(Optional.empty()).
-                                optionalFeatureProvider(Optional.empty()).
-                                bookiesCanBeSolved(Arrays.asList(1, 2, 3)).
-                                writableBookies(Arrays.asList(1, 2, 3)).
-                                readOnlyBookies(Collections.emptyList()).
-                                numberOfRack(2).
-                                ensembleSize(3).
-                                writeQuorumSize(3).
-                                ackQuorumSize(3).
-                                excludeBookie(Collections.emptyList()).
-                                expectedNotEnoughBookies(null).
-                                build()
-                },
-                {
-                        PlacementPolicyTestScenario.builder().
-                                initParams(
-                                        InitializeParameters.builder().
-                                                staticDNSResolver(new StaticDNSResolver()).
-                                                hashedWheelTimer(mockTimer).
-                                                stabilizePeriodSeconds(-1).
-                                                minNumRacksPerWriteQuorum(2).
-                                                enforceMinNumRacksPerWriteQuorum(true).
-                                                statsLogger(mockStatsLogger).
-                                                bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
-                                                expectedException(null).
-                                                build()
-                                ).
-                                optEnforceDurability(Optional.empty()).
-                                optionalFeatureProvider(Optional.empty()).
-                                bookiesCanBeSolved(Arrays.asList(1, 2, 3)).
-                                writableBookies(Arrays.asList(1, 2, 3)).
-                                readOnlyBookies(Collections.emptyList()).
-                                numberOfRack(2).
-                                ensembleSize(3).
-                                writeQuorumSize(3).
-                                ackQuorumSize(3).
-                                excludeBookie(Collections.emptyList()).
-                                expectedNotEnoughBookies(null).
-                                build()
-                },
-                {
-                        PlacementPolicyTestScenario.builder().
-                                initParams(
-                                        InitializeParameters.builder().
-                                                staticDNSResolver(new StaticDNSResolver()).
-                                                hashedWheelTimer(mockTimer).
-                                                stabilizePeriodSeconds(0).
-                                                minNumRacksPerWriteQuorum(1).
-                                                enforceMinNumRacksPerWriteQuorum(true).
-                                                statsLogger(mockStatsLogger).
-                                                bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
-                                                expectedException(null).
-                                                build()
-                                ).
-                                optEnforceDurability(Optional.empty()).
-                                optionalFeatureProvider(Optional.empty()).
-                                bookiesCanBeSolved(Arrays.asList(1, 2, 3)).
-                                writableBookies(Arrays.asList(1, 2, 3)).
-                                readOnlyBookies(Collections.emptyList()).
-                                numberOfRack(2).
-                                ensembleSize(3).
-                                writeQuorumSize(3).
-                                ackQuorumSize(3).
-                                excludeBookie(Collections.emptyList()).
-                                expectedNotEnoughBookies(null).
-                                build()
-                },
-                {
-                        PlacementPolicyTestScenario.builder().
-                                initParams(
-                                        InitializeParameters.builder().
-                                                staticDNSResolver(new StaticDNSResolver()).
-                                                hashedWheelTimer(mockTimer).
-                                                stabilizePeriodSeconds(0).
-                                                minNumRacksPerWriteQuorum(2).
-                                                enforceMinNumRacksPerWriteQuorum(true).
-                                                statsLogger(mockStatsLogger).
-                                                bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
-                                                expectedException(null).
-                                                build()
-                                ).
-                                optEnforceDurability(Optional.empty()).
-                                optionalFeatureProvider(Optional.empty()).
-                                bookiesCanBeSolved(Arrays.asList(1, 2, 3)).
-                                writableBookies(Arrays.asList(1, 2, 3)).
-                                readOnlyBookies(Collections.emptyList()).
-                                numberOfRack(2).
-                                ensembleSize(3).
-                                writeQuorumSize(3).
-                                ackQuorumSize(3).
-                                excludeBookie(Collections.emptyList()).
-                                expectedNotEnoughBookies(null).
-                                build()
-                },
-                {
-                        PlacementPolicyTestScenario.builder().
-                                initParams(
-                                        InitializeParameters.builder().
-                                                staticDNSResolver(new StaticDNSResolver()).
-                                                hashedWheelTimer(mockTimer).
-                                                stabilizePeriodSeconds(1).
-                                                minNumRacksPerWriteQuorum(1).
-                                                enforceMinNumRacksPerWriteQuorum(true).
-                                                statsLogger(mockStatsLogger).
-                                                bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
-                                                expectedException(null).
-                                                build()
-                                ).
-                                optEnforceDurability(Optional.empty()).
-                                optionalFeatureProvider(Optional.empty()).
-                                bookiesCanBeSolved(Arrays.asList(1, 2, 3)).
-                                writableBookies(Arrays.asList(1, 2, 3)).
-                                readOnlyBookies(Collections.emptyList()).
-                                numberOfRack(2).
-                                ensembleSize(3).
-                                writeQuorumSize(3).
-                                ackQuorumSize(3).
-                                excludeBookie(Collections.emptyList()).
-                                expectedNotEnoughBookies(null).
-                                build()
-                },
-                {
-                        PlacementPolicyTestScenario.builder().
-                                initParams(
-                                        InitializeParameters.builder().
-                                                staticDNSResolver(new StaticDNSResolver()).
-                                                hashedWheelTimer(mockTimer).
-                                                stabilizePeriodSeconds(1).
-                                                minNumRacksPerWriteQuorum(2).
-                                                enforceMinNumRacksPerWriteQuorum(true).
-                                                statsLogger(mockStatsLogger).
-                                                bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
-                                                expectedException(null).
-                                                build()
-                                ).
-                                optEnforceDurability(Optional.empty()).
-                                optionalFeatureProvider(Optional.empty()).
-                                bookiesCanBeSolved(Arrays.asList(1, 2, 3)).
-                                writableBookies(Arrays.asList(1, 2, 3)).
-                                readOnlyBookies(Collections.emptyList()).
-                                numberOfRack(2).
-                                ensembleSize(3).
-                                writeQuorumSize(3).
-                                ackQuorumSize(3).
-                                excludeBookie(Collections.emptyList()).
-                                expectedNotEnoughBookies(null).
-                                build()
-                },
-                {
-                        PlacementPolicyTestScenario.builder().
-                                initParams(
-                                        InitializeParameters.builder().
-                                                staticDNSResolver(new StaticDNSResolver()).
-                                                hashedWheelTimer(mockTimer).
-                                                stabilizePeriodSeconds(-1).
-                                                minNumRacksPerWriteQuorum(1).
-                                                enforceMinNumRacksPerWriteQuorum(false).
-                                                statsLogger(mockStatsLogger).
-                                                bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
-                                                expectedException(null).
-                                                build()
-                                ).
-                                optEnforceDurability(Optional.empty()).
-                                optionalFeatureProvider(Optional.empty()).
-                                bookiesCanBeSolved(Arrays.asList(1, 2, 3)).
-                                writableBookies(Arrays.asList(1, 2, 3)).
-                                readOnlyBookies(Collections.emptyList()).
-                                numberOfRack(2).
-                                ensembleSize(3).
-                                writeQuorumSize(3).
-                                ackQuorumSize(3).
-                                excludeBookie(Collections.emptyList()).
-                                expectedNotEnoughBookies(null).
-                                build()
-                },
-                {
-                        PlacementPolicyTestScenario.builder().
-                                initParams(
-                                        InitializeParameters.builder().
-                                                staticDNSResolver(new StaticDNSResolver()).
-                                                hashedWheelTimer(mockTimer).
-                                                stabilizePeriodSeconds(-1).
-                                                minNumRacksPerWriteQuorum(2).
-                                                enforceMinNumRacksPerWriteQuorum(false).
-                                                statsLogger(mockStatsLogger).
-                                                bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
-                                                expectedException(null).
-                                                build()
-                                ).
-                                optEnforceDurability(Optional.empty()).
-                                optionalFeatureProvider(Optional.empty()).
-                                bookiesCanBeSolved(Arrays.asList(1, 2, 3)).
-                                writableBookies(Arrays.asList(1, 2, 3)).
-                                readOnlyBookies(Collections.emptyList()).
-                                numberOfRack(2).
-                                ensembleSize(3).
-                                writeQuorumSize(3).
-                                ackQuorumSize(3).
-                                excludeBookie(Collections.emptyList()).
-                                expectedNotEnoughBookies(null).
-                                build()
-                },
-                {
-                        PlacementPolicyTestScenario.builder().
-                                initParams(
-                                        InitializeParameters.builder().
-                                                staticDNSResolver(new StaticDNSResolver()).
-                                                hashedWheelTimer(mockTimer).
-                                                stabilizePeriodSeconds(0).
-                                                minNumRacksPerWriteQuorum(1).
-                                                enforceMinNumRacksPerWriteQuorum(false).
-                                                statsLogger(mockStatsLogger).
-                                                bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
-                                                expectedException(null).
-                                                build()
-                                ).
-                                optEnforceDurability(Optional.empty()).
-                                optionalFeatureProvider(Optional.empty()).
-                                bookiesCanBeSolved(Arrays.asList(1, 2, 3)).
-                                writableBookies(Arrays.asList(1, 2, 3)).
-                                readOnlyBookies(Collections.emptyList()).
-                                numberOfRack(2).
-                                ensembleSize(3).
-                                writeQuorumSize(3).
-                                ackQuorumSize(3).
-                                excludeBookie(Collections.emptyList()).
-                                expectedNotEnoughBookies(null).
-                                build()
-                },
-                {
-                        PlacementPolicyTestScenario.builder().
-                                initParams(
-                                        InitializeParameters.builder().
-                                                staticDNSResolver(new StaticDNSResolver()).
-                                                hashedWheelTimer(mockTimer).
-                                                stabilizePeriodSeconds(0).
-                                                minNumRacksPerWriteQuorum(2).
-                                                enforceMinNumRacksPerWriteQuorum(false).
-                                                statsLogger(mockStatsLogger).
-                                                bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
-                                                expectedException(null).
-                                                build()
-                                ).
-                                optEnforceDurability(Optional.empty()).
-                                optionalFeatureProvider(Optional.empty()).
-                                bookiesCanBeSolved(Arrays.asList(1, 2, 3)).
-                                writableBookies(Arrays.asList(1, 2, 3)).
-                                readOnlyBookies(Collections.emptyList()).
-                                numberOfRack(2).
-                                ensembleSize(3).
-                                writeQuorumSize(3).
-                                ackQuorumSize(3).
-                                excludeBookie(Collections.emptyList()).
-                                expectedNotEnoughBookies(null).
-                                build()
-                },
-                {
-                        PlacementPolicyTestScenario.builder().
-                                initParams(
-                                        InitializeParameters.builder().
-                                                staticDNSResolver(new StaticDNSResolver()).
-                                                hashedWheelTimer(mockTimer).
-                                                stabilizePeriodSeconds(1).
-                                                minNumRacksPerWriteQuorum(1).
-                                                enforceMinNumRacksPerWriteQuorum(false).
-                                                statsLogger(mockStatsLogger).
-                                                bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
-                                                expectedException(null).
-                                                build()
-                                ).
-                                optEnforceDurability(Optional.empty()).
-                                optionalFeatureProvider(Optional.empty()).
-                                bookiesCanBeSolved(Arrays.asList(1, 2, 3)).
-                                writableBookies(Arrays.asList(1, 2, 3)).
-                                readOnlyBookies(Collections.emptyList()).
-                                numberOfRack(2).
-                                ensembleSize(3).
-                                writeQuorumSize(3).
-                                ackQuorumSize(3).
-                                excludeBookie(Collections.emptyList()).
-                                expectedNotEnoughBookies(null).
-                                build()
-                },
-                {
-                        PlacementPolicyTestScenario.builder().
-                                initParams(
-                                        InitializeParameters.builder().
-                                                staticDNSResolver(new StaticDNSResolver()).
-                                                hashedWheelTimer(mockTimer).
-                                                stabilizePeriodSeconds(1).
-                                                minNumRacksPerWriteQuorum(2).
-                                                enforceMinNumRacksPerWriteQuorum(false).
-                                                statsLogger(mockStatsLogger).
-                                                bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
-                                                expectedException(null).
-                                                build()
-                                ).
-                                optEnforceDurability(Optional.empty()).
-                                optionalFeatureProvider(Optional.empty()).
-                                bookiesCanBeSolved(Arrays.asList(1, 2, 3)).
-                                writableBookies(Arrays.asList(1, 2, 3)).
-                                readOnlyBookies(Collections.emptyList()).
-                                numberOfRack(2).
-                                ensembleSize(3).
-                                writeQuorumSize(3).
-                                ackQuorumSize(3).
-                                excludeBookie(Collections.emptyList()).
-                                expectedNotEnoughBookies(null).
-                                build()
-                },
-                {
-                        PlacementPolicyTestScenario.builder().
-                                initParams(
-                                        InitializeParameters.builder().
-                                                staticDNSResolver(null).
-                                                hashedWheelTimer(mockTimer).
-                                                stabilizePeriodSeconds(1).
-                                                minNumRacksPerWriteQuorum(2).
-                                                enforceMinNumRacksPerWriteQuorum(false).
-                                                statsLogger(mockStatsLogger).
-                                                bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
-                                                expectedException(NullPointerException.class).
-                                                build()
-                                ).
-                                optEnforceDurability(Optional.empty()).
-                                optionalFeatureProvider(Optional.empty()).
-                                bookiesCanBeSolved(Arrays.asList(1, 2, 3)).
-                                writableBookies(Arrays.asList(1, 2, 3)).
-                                readOnlyBookies(Collections.emptyList()).
-                                numberOfRack(2).
-                                ensembleSize(3).
-                                writeQuorumSize(3).
-                                ackQuorumSize(3).
-                                excludeBookie(Collections.emptyList()).
-                                expectedNotEnoughBookies(null).
-                                build()
-                },
-                {
-                        PlacementPolicyTestScenario.builder().
-                                initParams(
-                                        InitializeParameters.builder().
-                                                staticDNSResolver(new StaticDNSResolver()).
-                                                hashedWheelTimer(null).
-                                                stabilizePeriodSeconds(1).
-                                                minNumRacksPerWriteQuorum(2).
-                                                enforceMinNumRacksPerWriteQuorum(false).
-                                                statsLogger(mockStatsLogger).
-                                                bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
-                                                expectedException(null).
-                                                build()
-                                ).
-                                optEnforceDurability(Optional.empty()).
-                                optionalFeatureProvider(Optional.empty()).
-                                bookiesCanBeSolved(Arrays.asList(1, 2, 3)).
-                                writableBookies(Arrays.asList(1, 2, 3)).
-                                readOnlyBookies(Collections.emptyList()).
-                                numberOfRack(2).
-                                ensembleSize(3).
-                                writeQuorumSize(3).
-                                ackQuorumSize(3).
-                                excludeBookie(Collections.emptyList()).
-                                expectedNotEnoughBookies(null).
-                                build()
-                },
-                {
-                        PlacementPolicyTestScenario.builder().
-                                initParams(
-                                        InitializeParameters.builder().
-                                                staticDNSResolver(new StaticDNSResolver()).
-                                                hashedWheelTimer(mockTimer).
-                                                stabilizePeriodSeconds(1).
-                                                minNumRacksPerWriteQuorum(2).
-                                                enforceMinNumRacksPerWriteQuorum(false).
-                                                statsLogger(null).
-                                                bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
-                                                expectedException(NullPointerException.class).
-                                                build()
-                                ).
-                                optEnforceDurability(Optional.empty()).
-                                optionalFeatureProvider(Optional.empty()).
-                                bookiesCanBeSolved(Arrays.asList(1, 2, 3)).
-                                writableBookies(Arrays.asList(1, 2, 3)).
-                                readOnlyBookies(Collections.emptyList()).
-                                numberOfRack(2).
-                                ensembleSize(3).
-                                writeQuorumSize(3).
-                                ackQuorumSize(3).
-                                excludeBookie(Collections.emptyList()).
-                                expectedNotEnoughBookies(null).
-                                build()
-                },
-                {
-                        PlacementPolicyTestScenario.builder().
-                                initParams(
-                                        InitializeParameters.builder().
-                                                staticDNSResolver(new StaticDNSResolver()).
-                                                hashedWheelTimer(mockTimer).
-                                                stabilizePeriodSeconds(1).
-                                                minNumRacksPerWriteQuorum(2).
-                                                enforceMinNumRacksPerWriteQuorum(false).
-                                                statsLogger(mockStatsLogger).
-                                                bookieAddressResolver(null).
-                                                expectedException(IllegalStateException.class).
-                                                build()
-                                ).
-                                optEnforceDurability(Optional.empty()).
-                                optionalFeatureProvider(Optional.empty()).
-                                bookiesCanBeSolved(Arrays.asList(1, 2, 3)).
-                                writableBookies(Arrays.asList(1, 2, 3)).
-                                readOnlyBookies(Collections.emptyList()).
-                                numberOfRack(2).
-                                ensembleSize(3).
-                                writeQuorumSize(3).
-                                ackQuorumSize(3).
-                                excludeBookie(Collections.emptyList()).
-                                expectedNotEnoughBookies(null).
-                                build()
-                },
-        });
+        List<Object[]> scenarios = new ArrayList<>();
+        InitializeParameters [] initParametersList = {
+                InitializeParameters.builder().
+                        staticDNSResolver(new StaticDNSResolver()).
+                        hashedWheelTimer(mockTimer).
+                        stabilizePeriodSeconds(-1).
+                        minNumRacksPerWriteQuorum(1).
+                        enforceMinNumRacksPerWriteQuorum(true).
+                        statsLogger(mockStatsLogger).
+                        bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
+                        expectedException(null).
+                        build(),
+                InitializeParameters.builder().
+                        staticDNSResolver(new StaticDNSResolver()).
+                        hashedWheelTimer(mockTimer).
+                        stabilizePeriodSeconds(-1).
+                        minNumRacksPerWriteQuorum(2).
+                        enforceMinNumRacksPerWriteQuorum(true).
+                        statsLogger(mockStatsLogger).
+                        bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
+                        expectedException(null).
+                        build(),
+                InitializeParameters.builder().
+                        staticDNSResolver(new StaticDNSResolver()).
+                        hashedWheelTimer(mockTimer).
+                        stabilizePeriodSeconds(0).
+                        minNumRacksPerWriteQuorum(1).
+                        enforceMinNumRacksPerWriteQuorum(true).
+                        statsLogger(mockStatsLogger).
+                        bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
+                        expectedException(null).
+                        build(),
+                InitializeParameters.builder().
+                        staticDNSResolver(new StaticDNSResolver()).
+                        hashedWheelTimer(mockTimer).
+                        stabilizePeriodSeconds(0).
+                        minNumRacksPerWriteQuorum(2).
+                        enforceMinNumRacksPerWriteQuorum(true).
+                        statsLogger(mockStatsLogger).
+                        bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
+                        expectedException(null).
+                        build(),
+                /*
+                InitializeParameters.builder().
+                        staticDNSResolver(new StaticDNSResolver()).
+                        hashedWheelTimer(mockTimer).
+                        stabilizePeriodSeconds(1).
+                        minNumRacksPerWriteQuorum(1).
+                        enforceMinNumRacksPerWriteQuorum(true).
+                        statsLogger(mockStatsLogger).
+                        bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
+                        expectedException(null).
+                        build(),
+                InitializeParameters.builder().
+                        staticDNSResolver(new StaticDNSResolver()).
+                        hashedWheelTimer(mockTimer).
+                        stabilizePeriodSeconds(1).
+                        minNumRacksPerWriteQuorum(2).
+                        enforceMinNumRacksPerWriteQuorum(true).
+                        statsLogger(mockStatsLogger).
+                        bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
+                        expectedException(null).
+                        build(),
+
+                 */
+                InitializeParameters.builder().
+                        staticDNSResolver(new StaticDNSResolver()).
+                        hashedWheelTimer(mockTimer).
+                        stabilizePeriodSeconds(-1).
+                        minNumRacksPerWriteQuorum(1).
+                        enforceMinNumRacksPerWriteQuorum(false).
+                        statsLogger(mockStatsLogger).
+                        bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
+                        expectedException(null).
+                        build(),
+                InitializeParameters.builder().
+                        staticDNSResolver(new StaticDNSResolver()).
+                        hashedWheelTimer(mockTimer).
+                        stabilizePeriodSeconds(-1).
+                        minNumRacksPerWriteQuorum(2).
+                        enforceMinNumRacksPerWriteQuorum(false).
+                        statsLogger(mockStatsLogger).
+                        bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
+                        expectedException(null).
+                        build(),
+                InitializeParameters.builder().
+                        staticDNSResolver(new StaticDNSResolver()).
+                        hashedWheelTimer(mockTimer).
+                        stabilizePeriodSeconds(0).
+                        minNumRacksPerWriteQuorum(1).
+                        enforceMinNumRacksPerWriteQuorum(false).
+                        statsLogger(mockStatsLogger).
+                        bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
+                        expectedException(null).
+                        build(),
+                InitializeParameters.builder().
+                        staticDNSResolver(new StaticDNSResolver()).
+                        hashedWheelTimer(mockTimer).
+                        stabilizePeriodSeconds(0).
+                        minNumRacksPerWriteQuorum(2).
+                        enforceMinNumRacksPerWriteQuorum(false).
+                        statsLogger(mockStatsLogger).
+                        bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
+                        expectedException(null).
+                        build(),
+                /*
+                InitializeParameters.builder().
+                        staticDNSResolver(new StaticDNSResolver()).
+                        hashedWheelTimer(mockTimer).
+                        stabilizePeriodSeconds(1).
+                        minNumRacksPerWriteQuorum(1).
+                        enforceMinNumRacksPerWriteQuorum(false).
+                        statsLogger(mockStatsLogger).
+                        bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
+                        expectedException(null).
+                        build(),
+                InitializeParameters.builder().
+                        staticDNSResolver(new StaticDNSResolver()).
+                        hashedWheelTimer(mockTimer).
+                        stabilizePeriodSeconds(1).
+                        minNumRacksPerWriteQuorum(2).
+                        enforceMinNumRacksPerWriteQuorum(false).
+                        statsLogger(mockStatsLogger).
+                        bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
+                        expectedException(null).
+                        build(),
+                InitializeParameters.builder().
+                        staticDNSResolver(null).
+                        hashedWheelTimer(mockTimer).
+                        stabilizePeriodSeconds(1).
+                        minNumRacksPerWriteQuorum(2).
+                        enforceMinNumRacksPerWriteQuorum(false).
+                        statsLogger(mockStatsLogger).
+                        bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
+                        expectedException(NullPointerException.class).
+                        build(),
+                InitializeParameters.builder().
+                        staticDNSResolver(new StaticDNSResolver()).
+                        hashedWheelTimer(null).
+                        stabilizePeriodSeconds(1).
+                        minNumRacksPerWriteQuorum(2).
+                        enforceMinNumRacksPerWriteQuorum(false).
+                        statsLogger(mockStatsLogger).
+                        bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
+                        expectedException(null).
+                        build(),
+                InitializeParameters.builder().
+                        staticDNSResolver(new StaticDNSResolver()).
+                        hashedWheelTimer(mockTimer).
+                        stabilizePeriodSeconds(1).
+                        minNumRacksPerWriteQuorum(2).
+                        enforceMinNumRacksPerWriteQuorum(false).
+                        statsLogger(null).
+                        bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
+                        expectedException(NullPointerException.class).
+                        build(),
+                InitializeParameters.builder().
+                        staticDNSResolver(new StaticDNSResolver()).
+                        hashedWheelTimer(mockTimer).
+                        stabilizePeriodSeconds(1).
+                        minNumRacksPerWriteQuorum(2).
+                        enforceMinNumRacksPerWriteQuorum(false).
+                        statsLogger(mockStatsLogger).
+                        bookieAddressResolver(null).
+                        expectedException(IllegalStateException.class).
+                        build()
+                 */
+        };
+
+        OnClusterChangesParameters [] onClusterChangesParametersList = {
+                OnClusterChangesParameters.builder().
+                        startWritableBookies(Collections.singletonList(1)).
+                        startReadOnlyBookies(Collections.singletonList(1)).
+                        endWritableBookies(Collections.emptyList()).
+                        endReadOnlyBookies(Collections.singletonList(1)).
+                        expectedDeadBookies(Collections.emptyList()).
+                        build(),
+                OnClusterChangesParameters.builder().
+                        startWritableBookies(Collections.singletonList(1)).
+                        startReadOnlyBookies(Collections.singletonList(1)).
+                        endWritableBookies(Collections.singletonList(1)).
+                        endReadOnlyBookies(Collections.emptyList()).
+                        expectedDeadBookies(Collections.emptyList()).
+                        build(),
+                OnClusterChangesParameters.builder().
+                        startWritableBookies(Collections.singletonList(1)).
+                        startReadOnlyBookies(Collections.singletonList(1)).
+                        endWritableBookies(Collections.singletonList(1)).
+                        endReadOnlyBookies(Collections.singletonList(1)).
+                        expectedDeadBookies(Collections.emptyList()).
+                        build(),
+                OnClusterChangesParameters.builder().
+                        startWritableBookies(Collections.singletonList(1)).
+                        startReadOnlyBookies(Collections.emptyList()).
+                        endWritableBookies(Collections.emptyList()).
+                        endReadOnlyBookies(Collections.emptyList()).
+                        expectedDeadBookies(Collections.singletonList(1)).
+                        build(),
+                OnClusterChangesParameters.builder().
+                        startWritableBookies(Arrays.asList(1, 2)).
+                        startReadOnlyBookies(Arrays.asList(1, 2)).
+                        endWritableBookies(Collections.singletonList(1)).
+                        endReadOnlyBookies(Arrays.asList(1, 2)).
+                        expectedDeadBookies(Collections.emptyList()).
+                        build(),
+                OnClusterChangesParameters.builder().
+                        startWritableBookies(Arrays.asList(1, 2)).
+                        startReadOnlyBookies(Arrays.asList(1, 2)).
+                        endWritableBookies(Arrays.asList(1, 2)).
+                        endReadOnlyBookies(Collections.singletonList(2)).
+                        expectedDeadBookies(Collections.emptyList()).
+                        build(),
+                OnClusterChangesParameters.builder().
+                        startWritableBookies(Arrays.asList(1, 2)).
+                        startReadOnlyBookies(Collections.singletonList(3)).
+                        endWritableBookies(Arrays.asList(1, 2)).
+                        endReadOnlyBookies(Collections.emptyList()).
+                        expectedDeadBookies(Collections.emptyList()).
+                        build(),
+                OnClusterChangesParameters.builder().
+                        startWritableBookies(Arrays.asList(1, 2)).
+                        startReadOnlyBookies(Collections.singletonList(3)).
+                        endWritableBookies(Collections.singletonList(1)).
+                        endReadOnlyBookies(Collections.singletonList(3)).
+                        expectedDeadBookies(Collections.singletonList(2)).
+                        build(),
+                OnClusterChangesParameters.builder().
+                        startWritableBookies(Arrays.asList(1, 2)).
+                        startReadOnlyBookies(Collections.singletonList(2)).
+                        endWritableBookies(Arrays.asList(1, 2)).
+                        endReadOnlyBookies(Collections.emptyList()).
+                        expectedDeadBookies(Collections.emptyList()).
+                        build(),
+                OnClusterChangesParameters.builder().
+                        startWritableBookies(Arrays.asList(1, 2)).
+                        startReadOnlyBookies(Collections.singletonList(2)).
+                        endWritableBookies(Collections.singletonList(1)).
+                        endReadOnlyBookies(Collections.singletonList(2)).
+                        expectedDeadBookies(Collections.emptyList()).
+                        build(),
+                OnClusterChangesParameters.builder().
+                        startWritableBookies(Arrays.asList(1, 2)).
+                        startReadOnlyBookies(Collections.emptyList()).
+                        endWritableBookies(Collections.singletonList(1)).
+                        endReadOnlyBookies(Collections.singletonList(2)).
+                        expectedDeadBookies(Collections.emptyList()).
+                        build(),
+
+        };
+
+        for (InitializeParameters initializeParameters : initParametersList) {
+            for (OnClusterChangesParameters onClusterChangesParameters : onClusterChangesParametersList) {
+                PlacementPolicyTestScenario placementPolicyTestScenario = PlacementPolicyTestScenario.builder()
+                        .initParams(initializeParameters)
+                        .onClusterChangesParams(onClusterChangesParameters)
+                        .build();
+                scenarios.add(new Object[]{placementPolicyTestScenario});
+            }
+        }
+        return scenarios;
     }
 }
