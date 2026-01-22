@@ -5,7 +5,7 @@ import io.netty.util.Timeout;
 import io.netty.util.TimerTask;
 import lombok.Builder;
 import lombok.Getter;
-import org.apache.bookkeeper.feature.FeatureProvider;
+import org.apache.bookkeeper.net.DNSToSwitchMapping;
 import org.apache.bookkeeper.proto.BookieAddressResolver;
 import org.apache.bookkeeper.stats.Counter;
 import org.apache.bookkeeper.stats.OpStatsLogger;
@@ -36,7 +36,7 @@ public class ParametersSource {
         boolean ignoreLocalNodeInPlacementPolicy = false;
 
         // Variable parameters
-        StaticDNSResolver staticDNSResolver;
+        DNSToSwitchMapping staticDNSResolver;
         HashedWheelTimer hashedWheelTimer;
         int stabilizePeriodSeconds;
         int minNumRacksPerWriteQuorum;
@@ -54,6 +54,7 @@ public class ParametersSource {
         List<Integer> endWritableBookies;
         List<Integer> endReadOnlyBookies;
         List<Integer> expectedDeadBookies;
+        Class<? extends Throwable> expectedException;
     }
 
     @Builder
@@ -72,7 +73,7 @@ public class ParametersSource {
     public static class PlacementPolicyTestScenario {
         InitializeParameters initParams;
         OnClusterChangesParameters onClusterChangesParams;
-        NewEnsembleParameters ensembleParams;
+        NewEnsembleParameters newEnsembleParameters;
     }
 
 
@@ -82,7 +83,6 @@ public class ParametersSource {
         when(mockTimer.newTimeout(any(TimerTask.class), anyLong(), any(TimeUnit.class)))
                 .thenReturn(mock(Timeout.class));
         // Mock for the statsLogger
-        // Mock for the stats
         StatsLogger mockStatsLogger = mock(StatsLogger.class);
         Counter mockCounter = mock(Counter.class);
         when(mockStatsLogger.getCounter(anyString())).thenReturn(mockCounter);
@@ -92,7 +92,7 @@ public class ParametersSource {
         List<Object[]> scenarios = new ArrayList<>();
         InitializeParameters [] initParametersList = {
                 InitializeParameters.builder().
-                        staticDNSResolver(new StaticDNSResolver()).
+                        staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(1, Arrays.asList(1, 2, 3))).
                         hashedWheelTimer(mockTimer).
                         stabilizePeriodSeconds(-1).
                         minNumRacksPerWriteQuorum(1).
@@ -102,7 +102,7 @@ public class ParametersSource {
                         expectedException(null).
                         build(),
                 InitializeParameters.builder().
-                        staticDNSResolver(new StaticDNSResolver()).
+                        staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(1, Arrays.asList(1, 2, 3))).
                         hashedWheelTimer(mockTimer).
                         stabilizePeriodSeconds(-1).
                         minNumRacksPerWriteQuorum(2).
@@ -112,7 +112,7 @@ public class ParametersSource {
                         expectedException(null).
                         build(),
                 InitializeParameters.builder().
-                        staticDNSResolver(new StaticDNSResolver()).
+                        staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(1, Arrays.asList(1, 2, 3))).
                         hashedWheelTimer(mockTimer).
                         stabilizePeriodSeconds(0).
                         minNumRacksPerWriteQuorum(1).
@@ -122,7 +122,7 @@ public class ParametersSource {
                         expectedException(null).
                         build(),
                 InitializeParameters.builder().
-                        staticDNSResolver(new StaticDNSResolver()).
+                        staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(1, Arrays.asList(1, 2, 3))).
                         hashedWheelTimer(mockTimer).
                         stabilizePeriodSeconds(0).
                         minNumRacksPerWriteQuorum(2).
@@ -131,9 +131,8 @@ public class ParametersSource {
                         bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
                         expectedException(null).
                         build(),
-                /*
                 InitializeParameters.builder().
-                        staticDNSResolver(new StaticDNSResolver()).
+                        staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(1, Arrays.asList(1, 2, 3))).
                         hashedWheelTimer(mockTimer).
                         stabilizePeriodSeconds(1).
                         minNumRacksPerWriteQuorum(1).
@@ -143,60 +142,58 @@ public class ParametersSource {
                         expectedException(null).
                         build(),
                 InitializeParameters.builder().
-                        staticDNSResolver(new StaticDNSResolver()).
+                        staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(1, Arrays.asList(1, 2, 3))).
                         hashedWheelTimer(mockTimer).
                         stabilizePeriodSeconds(1).
                         minNumRacksPerWriteQuorum(2).
                         enforceMinNumRacksPerWriteQuorum(true).
+                        statsLogger(mockStatsLogger).
+                        bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
+                        expectedException(null).
+                        build(),
+                InitializeParameters.builder().
+                        staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(1, Arrays.asList(1, 2, 3))).
+                        hashedWheelTimer(mockTimer).
+                        stabilizePeriodSeconds(-1).
+                        minNumRacksPerWriteQuorum(1).
+                        enforceMinNumRacksPerWriteQuorum(false).
+                        statsLogger(mockStatsLogger).
+                        bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
+                        expectedException(null).
+                        build(),
+                InitializeParameters.builder().
+                        staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(1, Arrays.asList(1, 2, 3))).
+                        hashedWheelTimer(mockTimer).
+                        stabilizePeriodSeconds(-1).
+                        minNumRacksPerWriteQuorum(2).
+                        enforceMinNumRacksPerWriteQuorum(false).
+                        statsLogger(mockStatsLogger).
+                        bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
+                        expectedException(null).
+                        build(),
+                InitializeParameters.builder().
+                        staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(1, Arrays.asList(1, 2, 3))).
+                        hashedWheelTimer(mockTimer).
+                        stabilizePeriodSeconds(0).
+                        minNumRacksPerWriteQuorum(1).
+                        enforceMinNumRacksPerWriteQuorum(false).
+                        statsLogger(mockStatsLogger).
+                        bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
+                        expectedException(null).
+                        build(),
+                InitializeParameters.builder().
+                        staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(1, Arrays.asList(1, 2, 3))).
+                        hashedWheelTimer(mockTimer).
+                        stabilizePeriodSeconds(0).
+                        minNumRacksPerWriteQuorum(2).
+                        enforceMinNumRacksPerWriteQuorum(false).
                         statsLogger(mockStatsLogger).
                         bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
                         expectedException(null).
                         build(),
 
-                 */
                 InitializeParameters.builder().
-                        staticDNSResolver(new StaticDNSResolver()).
-                        hashedWheelTimer(mockTimer).
-                        stabilizePeriodSeconds(-1).
-                        minNumRacksPerWriteQuorum(1).
-                        enforceMinNumRacksPerWriteQuorum(false).
-                        statsLogger(mockStatsLogger).
-                        bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
-                        expectedException(null).
-                        build(),
-                InitializeParameters.builder().
-                        staticDNSResolver(new StaticDNSResolver()).
-                        hashedWheelTimer(mockTimer).
-                        stabilizePeriodSeconds(-1).
-                        minNumRacksPerWriteQuorum(2).
-                        enforceMinNumRacksPerWriteQuorum(false).
-                        statsLogger(mockStatsLogger).
-                        bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
-                        expectedException(null).
-                        build(),
-                InitializeParameters.builder().
-                        staticDNSResolver(new StaticDNSResolver()).
-                        hashedWheelTimer(mockTimer).
-                        stabilizePeriodSeconds(0).
-                        minNumRacksPerWriteQuorum(1).
-                        enforceMinNumRacksPerWriteQuorum(false).
-                        statsLogger(mockStatsLogger).
-                        bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
-                        expectedException(null).
-                        build(),
-                InitializeParameters.builder().
-                        staticDNSResolver(new StaticDNSResolver()).
-                        hashedWheelTimer(mockTimer).
-                        stabilizePeriodSeconds(0).
-                        minNumRacksPerWriteQuorum(2).
-                        enforceMinNumRacksPerWriteQuorum(false).
-                        statsLogger(mockStatsLogger).
-                        bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
-                        expectedException(null).
-                        build(),
-                /*
-                InitializeParameters.builder().
-                        staticDNSResolver(new StaticDNSResolver()).
+                        staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(1, Arrays.asList(1, 2, 3))).
                         hashedWheelTimer(mockTimer).
                         stabilizePeriodSeconds(1).
                         minNumRacksPerWriteQuorum(1).
@@ -206,7 +203,7 @@ public class ParametersSource {
                         expectedException(null).
                         build(),
                 InitializeParameters.builder().
-                        staticDNSResolver(new StaticDNSResolver()).
+                        staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(1, Arrays.asList(1, 2, 3))).
                         hashedWheelTimer(mockTimer).
                         stabilizePeriodSeconds(1).
                         minNumRacksPerWriteQuorum(2).
@@ -226,7 +223,7 @@ public class ParametersSource {
                         expectedException(NullPointerException.class).
                         build(),
                 InitializeParameters.builder().
-                        staticDNSResolver(new StaticDNSResolver()).
+                        staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(1, Arrays.asList(1, 2, 3))).
                         hashedWheelTimer(null).
                         stabilizePeriodSeconds(1).
                         minNumRacksPerWriteQuorum(2).
@@ -236,7 +233,7 @@ public class ParametersSource {
                         expectedException(null).
                         build(),
                 InitializeParameters.builder().
-                        staticDNSResolver(new StaticDNSResolver()).
+                        staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(1, Arrays.asList(1, 2, 3))).
                         hashedWheelTimer(mockTimer).
                         stabilizePeriodSeconds(1).
                         minNumRacksPerWriteQuorum(2).
@@ -246,16 +243,176 @@ public class ParametersSource {
                         expectedException(NullPointerException.class).
                         build(),
                 InitializeParameters.builder().
-                        staticDNSResolver(new StaticDNSResolver()).
+                        staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(1, Arrays.asList(1, 2, 3))).
                         hashedWheelTimer(mockTimer).
                         stabilizePeriodSeconds(1).
                         minNumRacksPerWriteQuorum(2).
                         enforceMinNumRacksPerWriteQuorum(false).
                         statsLogger(mockStatsLogger).
                         bookieAddressResolver(null).
-                        expectedException(IllegalStateException.class).
+                        expectedException(null).
+                        build(),
+                InitializeParameters.builder().
+                        staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(2, Arrays.asList(1, 2, 3))).
+                        hashedWheelTimer(mockTimer).
+                        stabilizePeriodSeconds(-1).
+                        minNumRacksPerWriteQuorum(1).
+                        enforceMinNumRacksPerWriteQuorum(true).
+                        statsLogger(mockStatsLogger).
+                        bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
+                        expectedException(null).
+                        build(),
+                InitializeParameters.builder().
+                        staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(2, Arrays.asList(1, 2, 3))).
+                        hashedWheelTimer(mockTimer).
+                        stabilizePeriodSeconds(-1).
+                        minNumRacksPerWriteQuorum(2).
+                        enforceMinNumRacksPerWriteQuorum(true).
+                        statsLogger(mockStatsLogger).
+                        bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
+                        expectedException(null).
+                        build(),
+                InitializeParameters.builder().
+                        staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(2, Arrays.asList(1, 2, 3))).
+                        hashedWheelTimer(mockTimer).
+                        stabilizePeriodSeconds(0).
+                        minNumRacksPerWriteQuorum(1).
+                        enforceMinNumRacksPerWriteQuorum(true).
+                        statsLogger(mockStatsLogger).
+                        bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
+                        expectedException(null).
+                        build(),
+                InitializeParameters.builder().
+                        staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(2, Arrays.asList(1, 2, 3))).
+                        hashedWheelTimer(mockTimer).
+                        stabilizePeriodSeconds(0).
+                        minNumRacksPerWriteQuorum(2).
+                        enforceMinNumRacksPerWriteQuorum(true).
+                        statsLogger(mockStatsLogger).
+                        bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
+                        expectedException(null).
+                        build(),
+                InitializeParameters.builder().
+                        staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(2, Arrays.asList(1, 2, 3))).
+                        hashedWheelTimer(mockTimer).
+                        stabilizePeriodSeconds(1).
+                        minNumRacksPerWriteQuorum(1).
+                        enforceMinNumRacksPerWriteQuorum(true).
+                        statsLogger(mockStatsLogger).
+                        bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
+                        expectedException(null).
+                        build(),
+                InitializeParameters.builder().
+                        staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(2, Arrays.asList(1, 2, 3))).
+                        hashedWheelTimer(mockTimer).
+                        stabilizePeriodSeconds(1).
+                        minNumRacksPerWriteQuorum(2).
+                        enforceMinNumRacksPerWriteQuorum(true).
+                        statsLogger(mockStatsLogger).
+                        bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
+                        expectedException(null).
+                        build(),
+                InitializeParameters.builder().
+                        staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(2, Arrays.asList(1, 2, 3))).
+                        hashedWheelTimer(mockTimer).
+                        stabilizePeriodSeconds(-1).
+                        minNumRacksPerWriteQuorum(1).
+                        enforceMinNumRacksPerWriteQuorum(false).
+                        statsLogger(mockStatsLogger).
+                        bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
+                        expectedException(null).
+                        build(),
+                InitializeParameters.builder().
+                        staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(2, Arrays.asList(1, 2, 3))).
+                        hashedWheelTimer(mockTimer).
+                        stabilizePeriodSeconds(-1).
+                        minNumRacksPerWriteQuorum(2).
+                        enforceMinNumRacksPerWriteQuorum(false).
+                        statsLogger(mockStatsLogger).
+                        bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
+                        expectedException(null).
+                        build(),
+                InitializeParameters.builder().
+                        staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(2, Arrays.asList(1, 2, 3))).
+                        hashedWheelTimer(mockTimer).
+                        stabilizePeriodSeconds(0).
+                        minNumRacksPerWriteQuorum(1).
+                        enforceMinNumRacksPerWriteQuorum(false).
+                        statsLogger(mockStatsLogger).
+                        bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
+                        expectedException(null).
+                        build(),
+                InitializeParameters.builder().
+                        staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(2, Arrays.asList(1, 2, 3))).
+                        hashedWheelTimer(mockTimer).
+                        stabilizePeriodSeconds(0).
+                        minNumRacksPerWriteQuorum(2).
+                        enforceMinNumRacksPerWriteQuorum(false).
+                        statsLogger(mockStatsLogger).
+                        bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
+                        expectedException(null).
+                        build(),
+
+                InitializeParameters.builder().
+                        staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(2, Arrays.asList(1, 2, 3))).
+                        hashedWheelTimer(mockTimer).
+                        stabilizePeriodSeconds(1).
+                        minNumRacksPerWriteQuorum(1).
+                        enforceMinNumRacksPerWriteQuorum(false).
+                        statsLogger(mockStatsLogger).
+                        bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
+                        expectedException(null).
+                        build(),
+                InitializeParameters.builder().
+                        staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(2, Arrays.asList(1, 2, 3))).
+                        hashedWheelTimer(mockTimer).
+                        stabilizePeriodSeconds(1).
+                        minNumRacksPerWriteQuorum(2).
+                        enforceMinNumRacksPerWriteQuorum(false).
+                        statsLogger(mockStatsLogger).
+                        bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
+                        expectedException(null).
+                        build(),
+                InitializeParameters.builder().
+                        staticDNSResolver(null).
+                        hashedWheelTimer(mockTimer).
+                        stabilizePeriodSeconds(1).
+                        minNumRacksPerWriteQuorum(2).
+                        enforceMinNumRacksPerWriteQuorum(false).
+                        statsLogger(mockStatsLogger).
+                        bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
+                        expectedException(NullPointerException.class).
+                        build(),
+                InitializeParameters.builder().
+                        staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(2, Arrays.asList(1, 2, 3))).
+                        hashedWheelTimer(null).
+                        stabilizePeriodSeconds(1).
+                        minNumRacksPerWriteQuorum(2).
+                        enforceMinNumRacksPerWriteQuorum(false).
+                        statsLogger(mockStatsLogger).
+                        bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
+                        expectedException(null).
+                        build(),
+                InitializeParameters.builder().
+                        staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(2, Arrays.asList(1, 2, 3))).
+                        hashedWheelTimer(mockTimer).
+                        stabilizePeriodSeconds(1).
+                        minNumRacksPerWriteQuorum(2).
+                        enforceMinNumRacksPerWriteQuorum(false).
+                        statsLogger(null).
+                        bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
+                        expectedException(NullPointerException.class).
+                        build(),
+                InitializeParameters.builder().
+                        staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(2, Arrays.asList(1, 2, 3))).
+                        hashedWheelTimer(mockTimer).
+                        stabilizePeriodSeconds(1).
+                        minNumRacksPerWriteQuorum(2).
+                        enforceMinNumRacksPerWriteQuorum(false).
+                        statsLogger(mockStatsLogger).
+                        bookieAddressResolver(null).
+                        expectedException(null).
                         build()
-                 */
         };
 
         OnClusterChangesParameters [] onClusterChangesParametersList = {
@@ -265,6 +422,7 @@ public class ParametersSource {
                         endWritableBookies(Collections.emptyList()).
                         endReadOnlyBookies(Collections.singletonList(1)).
                         expectedDeadBookies(Collections.emptyList()).
+                        expectedException(null).
                         build(),
                 OnClusterChangesParameters.builder().
                         startWritableBookies(Collections.singletonList(1)).
@@ -272,6 +430,7 @@ public class ParametersSource {
                         endWritableBookies(Collections.singletonList(1)).
                         endReadOnlyBookies(Collections.emptyList()).
                         expectedDeadBookies(Collections.emptyList()).
+                        expectedException(null).
                         build(),
                 OnClusterChangesParameters.builder().
                         startWritableBookies(Collections.singletonList(1)).
@@ -286,6 +445,7 @@ public class ParametersSource {
                         endWritableBookies(Collections.emptyList()).
                         endReadOnlyBookies(Collections.emptyList()).
                         expectedDeadBookies(Collections.singletonList(1)).
+                        expectedException(null).
                         build(),
                 OnClusterChangesParameters.builder().
                         startWritableBookies(Arrays.asList(1, 2)).
@@ -293,6 +453,7 @@ public class ParametersSource {
                         endWritableBookies(Collections.singletonList(1)).
                         endReadOnlyBookies(Arrays.asList(1, 2)).
                         expectedDeadBookies(Collections.emptyList()).
+                        expectedException(null).
                         build(),
                 OnClusterChangesParameters.builder().
                         startWritableBookies(Arrays.asList(1, 2)).
@@ -300,6 +461,7 @@ public class ParametersSource {
                         endWritableBookies(Arrays.asList(1, 2)).
                         endReadOnlyBookies(Collections.singletonList(2)).
                         expectedDeadBookies(Collections.emptyList()).
+                        expectedException(null).
                         build(),
                 OnClusterChangesParameters.builder().
                         startWritableBookies(Arrays.asList(1, 2)).
@@ -321,6 +483,7 @@ public class ParametersSource {
                         endWritableBookies(Arrays.asList(1, 2)).
                         endReadOnlyBookies(Collections.emptyList()).
                         expectedDeadBookies(Collections.emptyList()).
+                        expectedException(null).
                         build(),
                 OnClusterChangesParameters.builder().
                         startWritableBookies(Arrays.asList(1, 2)).
@@ -328,6 +491,7 @@ public class ParametersSource {
                         endWritableBookies(Collections.singletonList(1)).
                         endReadOnlyBookies(Collections.singletonList(2)).
                         expectedDeadBookies(Collections.emptyList()).
+                        expectedException(null).
                         build(),
                 OnClusterChangesParameters.builder().
                         startWritableBookies(Arrays.asList(1, 2)).
@@ -335,17 +499,45 @@ public class ParametersSource {
                         endWritableBookies(Collections.singletonList(1)).
                         endReadOnlyBookies(Collections.singletonList(2)).
                         expectedDeadBookies(Collections.emptyList()).
+                        expectedException(null).
                         build(),
+                OnClusterChangesParameters.builder().
+                        startWritableBookies(null).
+                        startReadOnlyBookies(Collections.singletonList(2)).
+                        endWritableBookies(null).
+                        endReadOnlyBookies(Collections.singletonList(2)).
+                        expectedException(NullPointerException.class).
+                        build(),
+                OnClusterChangesParameters.builder().
+                        startWritableBookies(Collections.singletonList(2)).
+                        startReadOnlyBookies(null).
+                        endWritableBookies(Collections.singletonList(2)).
+                        endReadOnlyBookies(null).
+                        expectedException(NullPointerException.class).
+                        build(),
+        };
 
+        NewEnsembleParameters [] newEnsembleParametersList = {
+                NewEnsembleParameters.builder()
+                        .ensembleSize(1)
+                        .ackQuorumSize(1)
+                        .writeQuorumSize(1)
+                        .customMetadata(new HashMap<>())
+                        .excludeBookie(Collections.emptyList())
+                        .build()
         };
 
         for (InitializeParameters initializeParameters : initParametersList) {
             for (OnClusterChangesParameters onClusterChangesParameters : onClusterChangesParametersList) {
-                PlacementPolicyTestScenario placementPolicyTestScenario = PlacementPolicyTestScenario.builder()
-                        .initParams(initializeParameters)
-                        .onClusterChangesParams(onClusterChangesParameters)
-                        .build();
-                scenarios.add(new Object[]{placementPolicyTestScenario});
+                for (NewEnsembleParameters newEnsembleParameters : newEnsembleParametersList) {
+                    if (initializeParameters.stabilizePeriodSeconds > 0) continue;
+                    PlacementPolicyTestScenario placementPolicyTestScenario = PlacementPolicyTestScenario.builder()
+                            .initParams(initializeParameters)
+                            .onClusterChangesParams(onClusterChangesParameters)
+                            .newEnsembleParameters(newEnsembleParameters)
+                            .build();
+                    scenarios.add(new Object[]{placementPolicyTestScenario});
+                }
             }
         }
         return scenarios;

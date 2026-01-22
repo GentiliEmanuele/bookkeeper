@@ -3,33 +3,53 @@ package org.apache.bookkeeper.util;
 import org.apache.bookkeeper.client.RackawareEnsemblePlacementPolicy;
 import org.apache.bookkeeper.net.BookieId;
 import org.apache.bookkeeper.net.BookieSocketAddress;
+import org.apache.bookkeeper.net.DNSToSwitchMapping;
 import org.apache.bookkeeper.proto.BookieAddressResolver;
 
 import java.util.*;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class RackAwarePPTestUtils {
-    private static Map<Integer, BookieId> bookieIdMap = new HashMap<>();
 
-    public static BookieId getBookieByIndex(int index) {
-        if (bookieIdMap.containsKey(index) && index != -1) {
-            return bookieIdMap.get(index);
-        } else {
-            return null;
-        }
-    }
+    private static final Map<Integer, BookieId> bookieIdMap = new HashMap<>();
 
     /**
-     * Create a topology with n node and m rack. If the n < m the number of the rack is not respected
+     * Mock the DNSToSwitchMapping
+     * @param numberOfRacks number of the racks
+     * @param bookieIds id of the bookie
+     * @return the mocked DNSToSwitchMapping
      */
-    public static void createNNodeMRackTopology(int n, int m) {
-        StaticDNSResolver.reset();
-        for (int i = 1; i <= n; i++) {
-            StaticDNSResolver.addNodeToRack(String.format("127.0.0.%d", i), String.format("/default-region/r%d", i % m));
+    public static DNSToSwitchMapping mockDNSToSwitchMapping(int numberOfRacks, List<Integer> bookieIds) {
+        DNSToSwitchMapping resolver = mock(DNSToSwitchMapping.class);
+
+        Map<String, String> rackMapping = new HashMap<>();
+        if (numberOfRacks <= 1) {
+            for (Integer id : bookieIds) {
+                rackMapping.put("127.0.0." + id, "/default-region/default-rack");
+            }
+        } else {
+            int rackIndex = 0;
+            for (Integer id : bookieIds) {
+                String rackPath = String.format("/default-region/rack-%d", rackIndex);
+                rackMapping.put("127.0.0." + id, rackPath);
+                rackIndex = (rackIndex + 1) % numberOfRacks;
+            }
         }
+
+        when(resolver.resolve(anyList())).thenAnswer(invocation -> {
+            List<String> names = invocation.getArgument(0);
+            List<String> racks = new ArrayList<>();
+            for (String name : names) {
+                racks.add(rackMapping.getOrDefault(name, "/default-region/default-rack"));
+            }
+            return racks;
+        });
+
+        return resolver;
     }
 
     /**
@@ -71,6 +91,7 @@ public class RackAwarePPTestUtils {
      * @param bookiesIdx : list of the bookies indices that can be solved
      * @return the created BookieAddressResolver
      */
+
     public static BookieAddressResolver wrapperCreationBookieAddressResolver(List<Integer> bookiesIdx) {
         Set<BookieId> bookiesCanBeSolved = toBookieIdSet(bookiesIdx);
         return resolveSpecifiedAddress(bookiesCanBeSolved);
@@ -82,6 +103,7 @@ public class RackAwarePPTestUtils {
      * @return the created set
      */
     public static Set<BookieId> toBookieIdSet(List<Integer> bookieIdx) {
+        if (bookieIdx == null) return null;
         Set<BookieId> bookies = new HashSet<>();
         for (Integer index : bookieIdx) {
             BookieId bookieId = createBookieId(index, String.format("127.0.0.%d", index), 3181);
