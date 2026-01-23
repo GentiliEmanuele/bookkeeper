@@ -91,7 +91,6 @@ public class RackAwarePPTestUtils {
      * @param bookiesIdx : list of the bookies indices that can be solved
      * @return the created BookieAddressResolver
      */
-
     public static BookieAddressResolver wrapperCreationBookieAddressResolver(List<Integer> bookiesIdx) {
         Set<BookieId> bookiesCanBeSolved = toBookieIdSet(bookiesIdx);
         return resolveSpecifiedAddress(bookiesCanBeSolved);
@@ -114,5 +113,24 @@ public class RackAwarePPTestUtils {
 
     public static RackawareEnsemblePlacementPolicy rackAwareEnsemblePlacementPolicyCreation(Optional<Boolean> optEnforceDurability) {
         return optEnforceDurability.isPresent() ? new RackawareEnsemblePlacementPolicy(optEnforceDurability.get()) : new RackawareEnsemblePlacementPolicy();
+    }
+
+    public static int countRacks(Collection<Integer> bookies, int configNumRacks) {
+        if (bookies == null || bookies.isEmpty()) {
+            return 0;
+        }
+
+        if (configNumRacks <= 1) {
+            return 1;
+        }
+
+        Set<Integer> uniqueRackIndexes = new HashSet<>();
+
+        for (Integer bookieId : bookies) {
+            int rackIndex = (bookieId - 1) % configNumRacks;
+            uniqueRackIndexes.add(rackIndex);
+        }
+
+        return uniqueRackIndexes.size();
     }
 }
