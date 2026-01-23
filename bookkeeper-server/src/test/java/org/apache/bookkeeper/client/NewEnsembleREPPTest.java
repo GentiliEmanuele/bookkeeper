@@ -87,6 +87,7 @@ public class NewEnsembleREPPTest {
                     RackAwarePPTestUtils.toBookieIdSet(scenario.getExcludeBookie())
             );
 
+            Assert.assertNotNull(result);
             Assert.assertEquals(result.getResult().size(), scenario.getEnsembleSize());
             for (BookieId excluded : RackAwarePPTestUtils.toBookieIdSet(scenario.getExcludeBookie())) {
                 Assert.assertFalse(result.getResult().contains(excluded));
