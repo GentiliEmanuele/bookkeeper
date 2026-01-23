@@ -1,6 +1,7 @@
 package org.apache.bookkeeper.client;
 
 import org.apache.bookkeeper.util.ConstructorSource;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,5 +43,10 @@ public class RackAwareEnsemblePlacementPolicyConstructorTest {
         } else {
             Assert.assertFalse(policy.enforceDurability);
         }
+    }
+
+    @After
+    public void destroyPolicy() {
+        policy.uninitalize();
     }
 }
