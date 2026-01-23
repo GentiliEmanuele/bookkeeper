@@ -41,7 +41,7 @@ public class NewEnsembleREPPTest {
         }
 
         // Create ad initialize the policy with current params
-        policy = RackAwarePPTestUtils.rackAwareEnsemblePlacementPolicyCreation(Optional.of(false));
+        policy = RackAwarePPTestUtils.rackAwareEnsemblePlacementPolicyCreation(scenario.getOnClusterChangesParameters().getInitializeParameters().getConstructorParameters());
         policy.initialize(
                 scenario.getOnClusterChangesParameters().getInitializeParameters().getStaticDNSResolver(),
                 scenario.getOnClusterChangesParameters().getInitializeParameters().getHashedWheelTimer(),

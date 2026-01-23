@@ -111,8 +111,8 @@ public class RackAwarePPTestUtils {
         return bookies;
     }
 
-    public static RackawareEnsemblePlacementPolicy rackAwareEnsemblePlacementPolicyCreation(Optional<Boolean> optEnforceDurability) {
-        return optEnforceDurability.isPresent() ? new RackawareEnsemblePlacementPolicy(optEnforceDurability.get()) : new RackawareEnsemblePlacementPolicy();
+    public static RackawareEnsemblePlacementPolicy rackAwareEnsemblePlacementPolicyCreation(Boolean enforceDurability) {
+        return enforceDurability != null ? new RackawareEnsemblePlacementPolicy(enforceDurability) : new RackawareEnsemblePlacementPolicy();
     }
 
     public static int countRacks(Collection<Integer> bookies, int configNumRacks) {

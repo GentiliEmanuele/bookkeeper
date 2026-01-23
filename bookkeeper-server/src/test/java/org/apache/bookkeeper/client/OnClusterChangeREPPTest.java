@@ -35,7 +35,7 @@ public class OnClusterChangeREPPTest {
             scenario.getInitializeParameters().getStaticDNSResolver().setBookieAddressResolver(scenario.getInitializeParameters().getBookieAddressResolver());
 
         // Create ad initialize the policy with current params
-        policy = RackAwarePPTestUtils.rackAwareEnsemblePlacementPolicyCreation(Optional.of(false));
+        policy = RackAwarePPTestUtils.rackAwareEnsemblePlacementPolicyCreation(scenario.getInitializeParameters().getConstructorParameters());
         policy.initialize(
                 scenario.getInitializeParameters().getStaticDNSResolver(),
                 scenario.getInitializeParameters().getHashedWheelTimer(),

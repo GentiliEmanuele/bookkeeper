@@ -5,6 +5,7 @@ import io.netty.util.Timeout;
 import io.netty.util.TimerTask;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 import org.apache.bookkeeper.net.DNSToSwitchMapping;
 import org.apache.bookkeeper.proto.BookieAddressResolver;
 import org.apache.bookkeeper.stats.Counter;
@@ -46,9 +47,24 @@ public class InitializeSource {
         Class<? extends Throwable> expectedException;
 
         int numRacks;
+        @Setter
+        Boolean constructorParameters;
     }
 
     public static Collection<Object[]> getParametersConfiguration() {
+        List<Boolean> booleans = Arrays.asList(true, false, null);
+        List<InitializeParameters> scenarios = getInitializeScenarios();
+        Collection<Object[]> parameters = new ArrayList<>();
+        for (Boolean bool : booleans) {
+            for (InitializeParameters scenario : scenarios) {
+                scenario.setConstructorParameters(bool);
+                parameters.add(new Object[]{scenario});
+            }
+        }
+        return parameters;
+    }
+
+    private static List<InitializeParameters> getInitializeScenarios() {
         // Mock for the timer
         HashedWheelTimer mockTimer = mock(HashedWheelTimer.class);
         when(mockTimer.newTimeout(any(TimerTask.class), anyLong(), any(TimeUnit.class)))
@@ -59,9 +75,7 @@ public class InitializeSource {
         when(mockStatsLogger.getCounter(anyString())).thenReturn(mockCounter);
         OpStatsLogger opStatsLogger = mock(OpStatsLogger.class);
         when(mockStatsLogger.getOpStatsLogger(anyString())).thenReturn(opStatsLogger);
-
-        return Arrays.asList(new Object[][] {
-                {
+        return Arrays.asList(
                         InitializeParameters.builder().
                                 staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(1, Arrays.asList(1, 2, 3))).
                                 hashedWheelTimer(mockTimer).
@@ -72,9 +86,7 @@ public class InitializeSource {
                                 bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
                                 expectedException(null).
                                 numRacks(1).
-                                build()
-                },
-                {
+                                build(),
                         InitializeParameters.builder().
                                 staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(1, Arrays.asList(1, 2, 3))).
                                 hashedWheelTimer(mockTimer).
@@ -85,9 +97,7 @@ public class InitializeSource {
                                 bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
                                 expectedException(null).
                                 numRacks(2).
-                                build()
-                },
-                {
+                                build(),
                         InitializeParameters.builder().
                                 staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(1, Arrays.asList(1, 2, 3))).
                                 hashedWheelTimer(mockTimer).
@@ -98,9 +108,7 @@ public class InitializeSource {
                                 bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
                                 expectedException(null).
                                 numRacks(1).
-                                build()
-                },
-                {
+                                build(),
                         InitializeParameters.builder().
                                 staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(1, Arrays.asList(1, 2, 3))).
                                 hashedWheelTimer(mockTimer).
@@ -111,9 +119,7 @@ public class InitializeSource {
                                 bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
                                 expectedException(null).
                                 numRacks(2).
-                                build()
-                },
-                {
+                                build(),
                         InitializeParameters.builder().
                                 staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(1, Arrays.asList(1, 2, 3))).
                                 hashedWheelTimer(mockTimer).
@@ -124,9 +130,7 @@ public class InitializeSource {
                                 bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
                                 expectedException(null).
                                 numRacks(1).
-                                build()
-                },
-                {
+                                build(),
                         InitializeParameters.builder().
                                 staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(1, Arrays.asList(1, 2, 3))).
                                 hashedWheelTimer(mockTimer).
@@ -137,9 +141,7 @@ public class InitializeSource {
                                 bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
                                 expectedException(null).
                                 numRacks(2).
-                                build()
-                },
-                {
+                                build(),
                         InitializeParameters.builder().
                                 staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(1, Arrays.asList(1, 2, 3))).
                                 hashedWheelTimer(mockTimer).
@@ -150,9 +152,7 @@ public class InitializeSource {
                                 bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
                                 expectedException(null).
                                 numRacks(1).
-                                build()
-                },
-                {
+                                build(),
                         InitializeParameters.builder().
                                 staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(1, Arrays.asList(1, 2, 3))).
                                 hashedWheelTimer(mockTimer).
@@ -163,9 +163,7 @@ public class InitializeSource {
                                 bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
                                 expectedException(null).
                                 numRacks(1).
-                                build()
-                },
-                {
+                                build(),
                         InitializeParameters.builder().
                                 staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(1, Arrays.asList(1, 2, 3))).
                                 hashedWheelTimer(mockTimer).
@@ -176,9 +174,7 @@ public class InitializeSource {
                                 bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
                                 expectedException(null).
                                 numRacks(1).
-                                build()
-                },
-                {
+                                build(),
                         InitializeParameters.builder().
                                 staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(1, Arrays.asList(1, 2, 3))).
                                 hashedWheelTimer(mockTimer).
@@ -189,9 +185,7 @@ public class InitializeSource {
                                 bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
                                 expectedException(null).
                                 numRacks(1).
-                                build()
-                },
-                {
+                                build(),
                         InitializeParameters.builder().
                                 staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(1, Arrays.asList(1, 2, 3))).
                                 hashedWheelTimer(mockTimer).
@@ -202,9 +196,7 @@ public class InitializeSource {
                                 bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
                                 expectedException(null).
                                 numRacks(1).
-                                build()
-                },
-                {
+                                build(),
                         InitializeParameters.builder().
                                 staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(1, Arrays.asList(1, 2, 3))).
                                 hashedWheelTimer(mockTimer).
@@ -215,9 +207,7 @@ public class InitializeSource {
                                 bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
                                 expectedException(null).
                                 numRacks(1).
-                                build()
-                },
-                {
+                                build(),
                         InitializeParameters.builder().
                                 staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(2, Arrays.asList(1, 2, 3))).
                                 hashedWheelTimer(mockTimer).
@@ -228,9 +218,7 @@ public class InitializeSource {
                                 bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
                                 expectedException(null).
                                 numRacks(2).
-                                build()
-                },
-                {
+                                build(),
                         InitializeParameters.builder().
                                 staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(2, Arrays.asList(1, 2, 3))).
                                 hashedWheelTimer(mockTimer).
@@ -241,9 +229,7 @@ public class InitializeSource {
                                 bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
                                 expectedException(null).
                                 numRacks(2).
-                                build()
-                },
-                {
+                                build(),
                         InitializeParameters.builder().
                                 staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(2, Arrays.asList(1, 2, 3))).
                                 hashedWheelTimer(mockTimer).
@@ -254,9 +240,7 @@ public class InitializeSource {
                                 bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
                                 expectedException(null).
                                 numRacks(2).
-                                build()
-                },
-                {
+                                build(),
                         InitializeParameters.builder().
                                 staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(2, Arrays.asList(1, 2, 3))).
                                 hashedWheelTimer(mockTimer).
@@ -267,9 +251,7 @@ public class InitializeSource {
                                 bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
                                 expectedException(null).
                                 numRacks(2).
-                                build()
-                },
-                {
+                                build(),
                         InitializeParameters.builder().
                                 staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(2, Arrays.asList(1, 2, 3))).
                                 hashedWheelTimer(mockTimer).
@@ -280,9 +262,7 @@ public class InitializeSource {
                                 bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
                                 expectedException(null).
                                 numRacks(2).
-                                build()
-                },
-                {
+                                build(),
                         InitializeParameters.builder().
                                 staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(2, Arrays.asList(1, 2, 3))).
                                 hashedWheelTimer(mockTimer).
@@ -293,9 +273,7 @@ public class InitializeSource {
                                 bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
                                 expectedException(null).
                                 numRacks(2).
-                                build()
-                },
-                {
+                                build(),
                         InitializeParameters.builder().
                                 staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(2, Arrays.asList(1, 2, 3))).
                                 hashedWheelTimer(mockTimer).
@@ -306,9 +284,7 @@ public class InitializeSource {
                                 bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
                                 expectedException(null).
                                 numRacks(2).
-                                build()
-                },
-                {
+                                build(),
                         InitializeParameters.builder().
                                 staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(2, Arrays.asList(1, 2, 3))).
                                 hashedWheelTimer(mockTimer).
@@ -319,9 +295,7 @@ public class InitializeSource {
                                 bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
                                 expectedException(null).
                                 numRacks(2).
-                                build()
-                },
-                {
+                                build(),
                         InitializeParameters.builder().
                                 staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(2, Arrays.asList(1, 2, 3))).
                                 hashedWheelTimer(mockTimer).
@@ -332,9 +306,7 @@ public class InitializeSource {
                                 bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
                                 expectedException(null).
                                 numRacks(2).
-                                build()
-                },
-                {
+                                build(),
                         InitializeParameters.builder().
                                 staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(2, Arrays.asList(1, 2, 3))).
                                 hashedWheelTimer(mockTimer).
@@ -345,9 +317,7 @@ public class InitializeSource {
                                 bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
                                 expectedException(null).
                                 numRacks(2).
-                                build()
-                },
-                {
+                                build(),
                         InitializeParameters.builder().
                                 staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(2, Arrays.asList(1, 2, 3))).
                                 hashedWheelTimer(mockTimer).
@@ -359,8 +329,6 @@ public class InitializeSource {
                                 expectedException(null).
                                 numRacks(2).
                                 build(),
-                },
-                {
                         InitializeParameters.builder().
                                 staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(2, Arrays.asList(1, 2, 3))).
                                 hashedWheelTimer(mockTimer).
@@ -371,9 +339,7 @@ public class InitializeSource {
                                 bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
                                 expectedException(null).
                                 numRacks(2).
-                                build()
-                },
-                {
+                                build(),
                         InitializeParameters.builder().
                                 staticDNSResolver(null).
                                 hashedWheelTimer(mockTimer).
@@ -384,9 +350,7 @@ public class InitializeSource {
                                 bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
                                 expectedException(NullPointerException.class).
                                 numRacks(2).
-                                build()
-                },
-                {
+                                build(),
                         InitializeParameters.builder().
                                 staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(2, Arrays.asList(1, 2, 3))).
                                 hashedWheelTimer(null).
@@ -397,9 +361,7 @@ public class InitializeSource {
                                 bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
                                 expectedException(null).
                                 numRacks(2).
-                                build()
-                },
-                {
+                                build(),
                         InitializeParameters.builder().
                                 staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(2, Arrays.asList(1, 2, 3))).
                                 hashedWheelTimer(mockTimer).
@@ -410,9 +372,7 @@ public class InitializeSource {
                                 bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
                                 expectedException(NullPointerException.class).
                                 numRacks(2).
-                                build()
-                },
-                {
+                                build(),
                         InitializeParameters.builder().
                                 staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(2, Arrays.asList(1, 2, 3))).
                                 hashedWheelTimer(mockTimer).
@@ -423,8 +383,6 @@ public class InitializeSource {
                                 bookieAddressResolver(null).
                                 expectedException(null).
                                 numRacks(2).
-                                build()
-                }
-        });
+                                build());
     }
 }

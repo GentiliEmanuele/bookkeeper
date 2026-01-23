@@ -35,7 +35,7 @@ public class InitializeRackAwareEnsemblePlacementPolicyTest {
             scenario.getStaticDNSResolver().setBookieAddressResolver(scenario.getBookieAddressResolver());
 
         // Create ad initialize the policy with current params
-        policy = RackAwarePPTestUtils.rackAwareEnsemblePlacementPolicyCreation(Optional.of(false));
+        policy = RackAwarePPTestUtils.rackAwareEnsemblePlacementPolicyCreation(scenario.getConstructorParameters());
         if (scenario.getExpectedException() == null) {
             initializeResult = policy.initialize(
                     scenario.getStaticDNSResolver(),
