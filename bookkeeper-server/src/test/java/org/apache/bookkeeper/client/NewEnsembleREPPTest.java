@@ -3,6 +3,7 @@ package org.apache.bookkeeper.client;
 import org.apache.bookkeeper.net.BookieId;
 import org.apache.bookkeeper.util.NewEnsembleSource;
 import org.apache.bookkeeper.util.RackAwarePPTestUtils;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
@@ -79,12 +80,17 @@ public class NewEnsembleREPPTest {
             });
         }
         try {
-            policy.newEnsemble(scenario.getEnsembleSize(),
+            EnsemblePlacementPolicy.PlacementResult<List<BookieId>> result = policy.newEnsemble(scenario.getEnsembleSize(),
                     scenario.getWriteQuorumSize(),
                     scenario.getAckQuorumSize(),
                     scenario.getCustomMetadata(),
                     RackAwarePPTestUtils.toBookieIdSet(scenario.getExcludeBookie())
             );
+
+            Assert.assertEquals(result.getResult().size(), scenario.getEnsembleSize());
+            for (BookieId excluded : RackAwarePPTestUtils.toBookieIdSet(scenario.getExcludeBookie())) {
+                Assert.assertFalse(result.getResult().contains(excluded));
+            }
         } catch (BKException.BKNotEnoughBookiesException e ) {
             boolean c0 = scenario.getOnClusterChangesParameters().getStartWritableBookies() == null || scenario.getOnClusterChangesParameters().getStartReadOnlyBookies() == null;
 

@@ -137,6 +137,13 @@ public class NewEnsembleSource {
                         .excludeBookie(Collections.singletonList(1))
                         .build(),
                 NewEnsembleParameters.builder()
+                        .ensembleSize(2)
+                        .ackQuorumSize(2)
+                        .writeQuorumSize(2)
+                        .customMetadata(new HashMap<>())
+                        .excludeBookie(Collections.singletonList(1))
+                        .build(),
+                NewEnsembleParameters.builder()
                         .ensembleSize(1)
                         .ackQuorumSize(1)
                         .writeQuorumSize(1)
