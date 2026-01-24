@@ -10,7 +10,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.util.Collection;
-import java.util.Optional;
 import java.util.Set;
 
 @RunWith(Parameterized.class)
@@ -78,7 +77,7 @@ public class OnClusterChangeREPPTest {
                 Set<BookieId> expectedDeadBookies = RackAwarePPTestUtils.toBookieIdSet(scenario.getExpectedDeadBookies());
 
                 Assertions.assertNotNull(deadBookies);
-                Assertions.assertEquals(deadBookies, expectedDeadBookies);
+                Assertions.assertEquals(expectedDeadBookies, deadBookies);
 
             } else {
                 Assertions.assertThrows(NullPointerException.class, () -> {

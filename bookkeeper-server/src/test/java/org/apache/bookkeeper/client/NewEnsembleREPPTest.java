@@ -3,7 +3,6 @@ package org.apache.bookkeeper.client;
 import org.apache.bookkeeper.net.BookieId;
 import org.apache.bookkeeper.util.NewEnsembleSource;
 import org.apache.bookkeeper.util.RackAwarePPTestUtils;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
@@ -20,6 +19,8 @@ public class NewEnsembleREPPTest {
     private final NewEnsembleSource.NewEnsembleParameters scenario;
 
     private RackawareEnsemblePlacementPolicy policy;
+    private Set<BookieId> writableBookies;
+    private Set<BookieId> readOnlyBookies;
 
     @Parameters
     public static Collection<Object[]> data() {
@@ -32,105 +33,53 @@ public class NewEnsembleREPPTest {
 
     @Before
     public void initializeTest() {
-        if (scenario.getOnClusterChangesParameters().getInitializeParameters().getStaticDNSResolver() != null &&
-                scenario.getOnClusterChangesParameters().getInitializeParameters().getBookieAddressResolver() != null)
-        {
-            scenario.getOnClusterChangesParameters().getInitializeParameters()
-                    .getStaticDNSResolver().setBookieAddressResolver(
-                            scenario.getOnClusterChangesParameters().getInitializeParameters().getBookieAddressResolver());
-        }
+
+        scenario.getInitializeParams().getStaticDNSResolver().setBookieAddressResolver(scenario.getInitializeParams().getBookieAddressResolver());
+
 
         // Create ad initialize the policy with current params
-        policy = RackAwarePPTestUtils.rackAwareEnsemblePlacementPolicyCreation(scenario.getOnClusterChangesParameters().getInitializeParameters().getConstructorParameters());
+        policy = RackAwarePPTestUtils.rackAwareEnsemblePlacementPolicyCreation(scenario.getInitializeParams().getConstructorParameters());
         policy.initialize(
-                scenario.getOnClusterChangesParameters().getInitializeParameters().getStaticDNSResolver(),
-                scenario.getOnClusterChangesParameters().getInitializeParameters().getHashedWheelTimer(),
-                scenario.getOnClusterChangesParameters().getInitializeParameters().isReorderReadsRandom(),
-                scenario.getOnClusterChangesParameters().getInitializeParameters().getStabilizePeriodSeconds(),
-                scenario.getOnClusterChangesParameters().getInitializeParameters().getReorderThresholdPendingRequests(),
-                scenario.getOnClusterChangesParameters().getInitializeParameters().isWeighted(),
-                scenario.getOnClusterChangesParameters().getInitializeParameters().getMaxWeightMultiple(),
-                scenario.getOnClusterChangesParameters().getInitializeParameters().getMinNumRacksPerWriteQuorum(),
-                scenario.getOnClusterChangesParameters().getInitializeParameters().isEnforceMinNumRacksPerWriteQuorum(),
-                scenario.getOnClusterChangesParameters().getInitializeParameters().isIgnoreLocalNodeInPlacementPolicy(),
-                scenario.getOnClusterChangesParameters().getInitializeParameters().getStatsLogger(),
-                scenario.getOnClusterChangesParameters().getInitializeParameters().getBookieAddressResolver()
+                scenario.getInitializeParams().getStaticDNSResolver(),
+                scenario.getInitializeParams().getHashedWheelTimer(),
+                scenario.getInitializeParams().isReorderReadsRandom(),
+                scenario.getInitializeParams().getStabilizePeriodSeconds(),
+                scenario.getInitializeParams().getReorderThresholdPendingRequests(),
+                scenario.getInitializeParams().isWeighted(),
+                scenario.getInitializeParams().getMaxWeightMultiple(),
+                scenario.getInitializeParams().getMinNumRacksPerWriteQuorum(),
+                scenario.getInitializeParams().isEnforceMinNumRacksPerWriteQuorum(),
+                scenario.getInitializeParams().isIgnoreLocalNodeInPlacementPolicy(),
+                scenario.getInitializeParams().getStatsLogger(),
+                scenario.getInitializeParams().getBookieAddressResolver()
         );
 
-        Set<BookieId> startWritableBookies = scenario.getOnClusterChangesParameters().getStartWritableBookies() != null ?
-                RackAwarePPTestUtils.toBookieIdSet(scenario.getOnClusterChangesParameters().getStartWritableBookies()) :
-                new HashSet<>();
-        Set<BookieId> startReadOnlyBookies = scenario.getOnClusterChangesParameters().getStartReadOnlyBookies() != null ?
-                RackAwarePPTestUtils.toBookieIdSet(scenario.getOnClusterChangesParameters().getStartReadOnlyBookies()) :
-                new HashSet<>();
+        writableBookies = RackAwarePPTestUtils.toBookieIdSet(scenario.getWritableBookies());
+        readOnlyBookies = RackAwarePPTestUtils.toBookieIdSet(scenario.getReadOnlyBookies());
 
-        policy.onClusterChanged(startWritableBookies, startReadOnlyBookies);
+        policy.onClusterChanged(writableBookies, readOnlyBookies);
     }
 
     @Test
-    public void testNewEnsemble() {
-        if (scenario.getExcludeBookie() == null) {
-            Assertions.assertThrows(NullPointerException.class, () -> {
-                policy.newEnsemble(scenario.getEnsembleSize(),
-                        scenario.getWriteQuorumSize(),
-                        scenario.getAckQuorumSize(),
-                        scenario.getCustomMetadata(),
-                        scenario.getExcludeBookie() != null ? RackAwarePPTestUtils.toBookieIdSet(scenario.getExcludeBookie()) : null
-                );
-            });
-        }
-        try {
-            EnsemblePlacementPolicy.PlacementResult<List<BookieId>> result = policy.newEnsemble(scenario.getEnsembleSize(),
+    public void testNewEnsemble() throws BKException.BKNotEnoughBookiesException {
+        if (scenario.getExpectedException() == null) {
+            EnsemblePlacementPolicy.PlacementResult<List<BookieId>> placementResult = policy.newEnsemble(
+                    scenario.getEnsembleSize(),
                     scenario.getWriteQuorumSize(),
                     scenario.getAckQuorumSize(),
                     scenario.getCustomMetadata(),
                     RackAwarePPTestUtils.toBookieIdSet(scenario.getExcludeBookie())
             );
-
-            Assert.assertNotNull(result);
-            Assert.assertEquals(result.getResult().size(), scenario.getEnsembleSize());
-            for (BookieId excluded : RackAwarePPTestUtils.toBookieIdSet(scenario.getExcludeBookie())) {
-                Assert.assertFalse(result.getResult().contains(excluded));
-            }
-        } catch (BKException.BKNotEnoughBookiesException e ) {
-            boolean c0 = scenario.getOnClusterChangesParameters().getStartWritableBookies() == null || scenario.getOnClusterChangesParameters().getStartReadOnlyBookies() == null;
-
-            boolean c1 = false;
-            boolean c2 = false;
-            boolean c3 = false;
-
-            if (!c0) {
-                Set<Integer> allBookies = new HashSet<>(scenario.getOnClusterChangesParameters().getStartWritableBookies());
-                Set<Integer> excluded = new HashSet<>(scenario.getExcludeBookie());
-                int numRacksConfig = scenario.getOnClusterChangesParameters().getInitializeParameters().getNumRacks();
-                boolean enforce = policy.enforceMinNumRacksPerWriteQuorum;
-
-                // Compute te bookies really usable
-                Set<Integer> usableBookies = new HashSet<>(allBookies);
-                usableBookies.removeAll(excluded);
-
-                // Not enough bookie are available
-                c1 = usableBookies.size() < scenario.getEnsembleSize();
-
-                if (enforce) {
-                    int neededRacks = Math.min(scenario.getWriteQuorumSize(), policy.minNumRacksPerWriteQuorum);
-                    int totalTopologyRacks = RackAwarePPTestUtils.countRacks(allBookies, numRacksConfig);
-
-                    // Available racks are not enough
-                    if (totalTopologyRacks < 2 && neededRacks > 1) {
-                        c2 = true;
-                    }
-
-                    // Usable rack are not enough
-                    int usableRacksCount = RackAwarePPTestUtils.countRacks(usableBookies, numRacksConfig);
-                    if (usableRacksCount < neededRacks) {
-                        c3 = true;
-                    }
-                }
-            }
-            Assertions.assertTrue(c0 || c1 | c2 | c3);
-        } catch (NullPointerException e) {
-            Assertions.assertTrue(scenario.getCustomMetadata() == null || scenario.getExcludeBookie() == null);
+            Assertions.assertNotNull(placementResult);
+        } else {
+            Assertions.assertThrows(scenario.getExpectedException(), () -> {
+                policy.newEnsemble(
+                        scenario.getEnsembleSize(),
+                        scenario.getWriteQuorumSize(),
+                        scenario.getAckQuorumSize(),
+                        scenario.getCustomMetadata(),
+                        RackAwarePPTestUtils.toBookieIdSet(scenario.getExcludeBookie()));
+            });
         }
     }
 

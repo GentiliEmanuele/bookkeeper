@@ -1,15 +1,21 @@
 package org.apache.bookkeeper.util;
 
+import io.netty.util.HashedWheelTimer;
+import io.netty.util.Timeout;
+import io.netty.util.TimerTask;
 import org.apache.bookkeeper.client.RackawareEnsemblePlacementPolicy;
 import org.apache.bookkeeper.net.BookieId;
 import org.apache.bookkeeper.net.BookieSocketAddress;
 import org.apache.bookkeeper.net.DNSToSwitchMapping;
 import org.apache.bookkeeper.proto.BookieAddressResolver;
+import org.apache.bookkeeper.stats.Counter;
+import org.apache.bookkeeper.stats.OpStatsLogger;
+import org.apache.bookkeeper.stats.StatsLogger;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -132,5 +138,23 @@ public class RackAwarePPTestUtils {
         }
 
         return uniqueRackIndexes.size();
+    }
+
+    public static HashedWheelTimer mockTimer() {
+        // Mock for the timer
+        HashedWheelTimer mockTimer = mock(HashedWheelTimer.class);
+        when(mockTimer.newTimeout(any(TimerTask.class), anyLong(), any(TimeUnit.class)))
+                .thenReturn(mock(Timeout.class));
+        return mockTimer;
+    }
+
+    public static StatsLogger mockStatsLogger() {
+        // Mock for the statsLogger
+        StatsLogger mockStatsLogger = mock(StatsLogger.class);
+        Counter mockCounter = mock(Counter.class);
+        when(mockStatsLogger.getCounter(anyString())).thenReturn(mockCounter);
+        OpStatsLogger opStatsLogger = mock(OpStatsLogger.class);
+        when(mockStatsLogger.getOpStatsLogger(anyString())).thenReturn(opStatsLogger);
+        return mockStatsLogger;
     }
 }
