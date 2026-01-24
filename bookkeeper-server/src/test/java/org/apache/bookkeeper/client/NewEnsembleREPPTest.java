@@ -71,6 +71,9 @@ public class NewEnsembleREPPTest {
                     RackAwarePPTestUtils.toBookieIdSet(scenario.getExcludeBookie())
             );
             Assertions.assertNotNull(placementResult);
+            for (BookieId bookieId : RackAwarePPTestUtils.toBookieIdSet(scenario.getExcludeBookie())) {
+                Assertions.assertFalse(placementResult.getResult().contains(bookieId));
+            }
         } else {
             Assertions.assertThrows(scenario.getExpectedException(), () -> {
                 policy.newEnsemble(

@@ -12,6 +12,7 @@ import org.apache.bookkeeper.stats.Counter;
 import org.apache.bookkeeper.stats.OpStatsLogger;
 import org.apache.bookkeeper.stats.StatsLogger;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -156,5 +157,11 @@ public class RackAwarePPTestUtils {
         OpStatsLogger opStatsLogger = mock(OpStatsLogger.class);
         when(mockStatsLogger.getOpStatsLogger(anyString())).thenReturn(opStatsLogger);
         return mockStatsLogger;
+    }
+
+    public static Map<String, byte[]> getValidCustomMetadata() {
+        Map<String, byte[]> metadata = new HashMap<>();
+        metadata.put("ledger.type", "write-ahead-log".getBytes(StandardCharsets.UTF_8));
+        return metadata;
     }
 }

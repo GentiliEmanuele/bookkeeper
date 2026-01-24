@@ -45,7 +45,7 @@ public class NewEnsembleSource {
                             .ensembleSize(1)
                             .writeQuorumSize(1)
                             .ackQuorumSize(1)
-                            .customMetadata(Collections.emptyMap())
+                            .customMetadata(RackAwarePPTestUtils.getValidCustomMetadata())
                             .excludeBookie(Collections.emptyList())
                             .expectedException(null)
                             .build()
@@ -56,7 +56,7 @@ public class NewEnsembleSource {
                                         InitializeSource.InitializeParameters.builder().
                                                 staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(1, Arrays.asList(1, 2, 3))).
                                                 hashedWheelTimer(RackAwarePPTestUtils.mockTimer()).
-                                                stabilizePeriodSeconds(0).
+                                                stabilizePeriodSeconds(1).
                                                 minNumRacksPerWriteQuorum(2).
                                                 enforceMinNumRacksPerWriteQuorum(false).
                                                 statsLogger(RackAwarePPTestUtils.mockStatsLogger()).
@@ -83,6 +83,31 @@ public class NewEnsembleSource {
                                                 hashedWheelTimer(RackAwarePPTestUtils.mockTimer()).
                                                 stabilizePeriodSeconds(0).
                                                 minNumRacksPerWriteQuorum(1).
+                                                enforceMinNumRacksPerWriteQuorum(false).
+                                                statsLogger(RackAwarePPTestUtils.mockStatsLogger()).
+                                                bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
+                                                expectedException(null).
+                                                numRacks(1).
+                                                build()
+                                )
+                                .writableBookies(Collections.singletonList(1))
+                                .readOnlyBookies(Collections.emptyList())
+                                .ensembleSize(2)
+                                .writeQuorumSize(1)
+                                .ackQuorumSize(1)
+                                .customMetadata(RackAwarePPTestUtils.getValidCustomMetadata())
+                                .excludeBookie(Collections.emptyList())
+                                .expectedException(BKException.BKNotEnoughBookiesException.class)
+                                .build()
+                },
+                {
+                        NewEnsembleParameters.builder()
+                                .initializeParams(
+                                        InitializeSource.InitializeParameters.builder().
+                                                staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(1, Arrays.asList(1, 2, 3))).
+                                                hashedWheelTimer(RackAwarePPTestUtils.mockTimer()).
+                                                stabilizePeriodSeconds(1).
+                                                minNumRacksPerWriteQuorum(2).
                                                 enforceMinNumRacksPerWriteQuorum(false).
                                                 statsLogger(RackAwarePPTestUtils.mockStatsLogger()).
                                                 bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
@@ -107,31 +132,6 @@ public class NewEnsembleSource {
                                                 staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(1, Arrays.asList(1, 2, 3))).
                                                 hashedWheelTimer(RackAwarePPTestUtils.mockTimer()).
                                                 stabilizePeriodSeconds(0).
-                                                minNumRacksPerWriteQuorum(2).
-                                                enforceMinNumRacksPerWriteQuorum(false).
-                                                statsLogger(RackAwarePPTestUtils.mockStatsLogger()).
-                                                bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
-                                                expectedException(null).
-                                                numRacks(1).
-                                                build()
-                                )
-                                .writableBookies(Collections.singletonList(1))
-                                .readOnlyBookies(Collections.emptyList())
-                                .ensembleSize(2)
-                                .writeQuorumSize(1)
-                                .ackQuorumSize(1)
-                                .customMetadata(Collections.emptyMap())
-                                .excludeBookie(Collections.emptyList())
-                                .expectedException(BKException.BKNotEnoughBookiesException.class)
-                                .build()
-                },
-                {
-                        NewEnsembleParameters.builder()
-                                .initializeParams(
-                                        InitializeSource.InitializeParameters.builder().
-                                                staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(1, Arrays.asList(1, 2, 3))).
-                                                hashedWheelTimer(RackAwarePPTestUtils.mockTimer()).
-                                                stabilizePeriodSeconds(0).
                                                 minNumRacksPerWriteQuorum(1).
                                                 enforceMinNumRacksPerWriteQuorum(true).
                                                 statsLogger(RackAwarePPTestUtils.mockStatsLogger()).
@@ -145,7 +145,7 @@ public class NewEnsembleSource {
                                 .ensembleSize(1)
                                 .writeQuorumSize(1)
                                 .ackQuorumSize(1)
-                                .customMetadata(Collections.emptyMap())
+                                .customMetadata(RackAwarePPTestUtils.getValidCustomMetadata())
                                 .excludeBookie(Collections.emptyList())
                                 .expectedException(null)
                                 .build()
@@ -156,7 +156,7 @@ public class NewEnsembleSource {
                                         InitializeSource.InitializeParameters.builder().
                                                 staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(1, Arrays.asList(1, 2, 3))).
                                                 hashedWheelTimer(RackAwarePPTestUtils.mockTimer()).
-                                                stabilizePeriodSeconds(0).
+                                                stabilizePeriodSeconds(1).
                                                 minNumRacksPerWriteQuorum(2).
                                                 enforceMinNumRacksPerWriteQuorum(true).
                                                 statsLogger(RackAwarePPTestUtils.mockStatsLogger()).
@@ -195,7 +195,7 @@ public class NewEnsembleSource {
                                 .ensembleSize(2)
                                 .writeQuorumSize(1)
                                 .ackQuorumSize(1)
-                                .customMetadata(Collections.emptyMap())
+                                .customMetadata(RackAwarePPTestUtils.getValidCustomMetadata())
                                 .excludeBookie(Collections.emptyList())
                                 .expectedException(BKException.BKNotEnoughBookiesException.class)
                                 .build()
@@ -206,7 +206,7 @@ public class NewEnsembleSource {
                                         InitializeSource.InitializeParameters.builder().
                                                 staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(1, Arrays.asList(1, 2, 3))).
                                                 hashedWheelTimer(RackAwarePPTestUtils.mockTimer()).
-                                                stabilizePeriodSeconds(0).
+                                                stabilizePeriodSeconds(1).
                                                 minNumRacksPerWriteQuorum(2).
                                                 enforceMinNumRacksPerWriteQuorum(true).
                                                 statsLogger(RackAwarePPTestUtils.mockStatsLogger()).
@@ -245,7 +245,7 @@ public class NewEnsembleSource {
                                 .ensembleSize(1)
                                 .writeQuorumSize(1)
                                 .ackQuorumSize(1)
-                                .customMetadata(Collections.emptyMap())
+                                .customMetadata(RackAwarePPTestUtils.getValidCustomMetadata())
                                 .excludeBookie(Collections.emptyList())
                                 .expectedException(null)
                                 .build()
@@ -256,7 +256,7 @@ public class NewEnsembleSource {
                                         InitializeSource.InitializeParameters.builder().
                                                 staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(1, Arrays.asList(1, 2, 3))).
                                                 hashedWheelTimer(RackAwarePPTestUtils.mockTimer()).
-                                                stabilizePeriodSeconds(0).
+                                                stabilizePeriodSeconds(1).
                                                 minNumRacksPerWriteQuorum(2).
                                                 enforceMinNumRacksPerWriteQuorum(false).
                                                 statsLogger(RackAwarePPTestUtils.mockStatsLogger()).
@@ -295,7 +295,7 @@ public class NewEnsembleSource {
                                 .ensembleSize(2)
                                 .writeQuorumSize(1)
                                 .ackQuorumSize(1)
-                                .customMetadata(Collections.emptyMap())
+                                .customMetadata(RackAwarePPTestUtils.getValidCustomMetadata())
                                 .excludeBookie(Collections.emptyList())
                                 .expectedException(null)
                                 .build()
@@ -306,7 +306,7 @@ public class NewEnsembleSource {
                                         InitializeSource.InitializeParameters.builder().
                                                 staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(1, Arrays.asList(1, 2, 3))).
                                                 hashedWheelTimer(RackAwarePPTestUtils.mockTimer()).
-                                                stabilizePeriodSeconds(0).
+                                                stabilizePeriodSeconds(1).
                                                 minNumRacksPerWriteQuorum(2).
                                                 enforceMinNumRacksPerWriteQuorum(false).
                                                 statsLogger(RackAwarePPTestUtils.mockStatsLogger()).
@@ -345,7 +345,7 @@ public class NewEnsembleSource {
                                 .ensembleSize(1)
                                 .writeQuorumSize(1)
                                 .ackQuorumSize(1)
-                                .customMetadata(Collections.emptyMap())
+                                .customMetadata(RackAwarePPTestUtils.getValidCustomMetadata())
                                 .excludeBookie(Collections.emptyList())
                                 .expectedException(null)
                                 .build()
@@ -356,7 +356,7 @@ public class NewEnsembleSource {
                                         InitializeSource.InitializeParameters.builder().
                                                 staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(1, Arrays.asList(1, 2, 3))).
                                                 hashedWheelTimer(RackAwarePPTestUtils.mockTimer()).
-                                                stabilizePeriodSeconds(0).
+                                                stabilizePeriodSeconds(1).
                                                 minNumRacksPerWriteQuorum(2).
                                                 enforceMinNumRacksPerWriteQuorum(true).
                                                 statsLogger(RackAwarePPTestUtils.mockStatsLogger()).
@@ -395,7 +395,7 @@ public class NewEnsembleSource {
                                 .ensembleSize(2)
                                 .writeQuorumSize(1)
                                 .ackQuorumSize(1)
-                                .customMetadata(Collections.emptyMap())
+                                .customMetadata(RackAwarePPTestUtils.getValidCustomMetadata())
                                 .excludeBookie(Collections.emptyList())
                                 .expectedException(null)
                                 .build()
@@ -406,7 +406,7 @@ public class NewEnsembleSource {
                                         InitializeSource.InitializeParameters.builder().
                                                 staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(1, Arrays.asList(1, 2, 3))).
                                                 hashedWheelTimer(RackAwarePPTestUtils.mockTimer()).
-                                                stabilizePeriodSeconds(0).
+                                                stabilizePeriodSeconds(1).
                                                 minNumRacksPerWriteQuorum(1).
                                                 enforceMinNumRacksPerWriteQuorum(true).
                                                 statsLogger(RackAwarePPTestUtils.mockStatsLogger()).
@@ -445,7 +445,7 @@ public class NewEnsembleSource {
                                 .ensembleSize(2)
                                 .writeQuorumSize(1)
                                 .ackQuorumSize(1)
-                                .customMetadata(Collections.emptyMap())
+                                .customMetadata(RackAwarePPTestUtils.getValidCustomMetadata())
                                 .excludeBookie(Collections.emptyList())
                                 .expectedException(null)
                                 .build()
@@ -456,7 +456,7 @@ public class NewEnsembleSource {
                                         InitializeSource.InitializeParameters.builder().
                                                 staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(1, Arrays.asList(1, 2, 3))).
                                                 hashedWheelTimer(RackAwarePPTestUtils.mockTimer()).
-                                                stabilizePeriodSeconds(0).
+                                                stabilizePeriodSeconds(1).
                                                 minNumRacksPerWriteQuorum(2).
                                                 enforceMinNumRacksPerWriteQuorum(true).
                                                 statsLogger(RackAwarePPTestUtils.mockStatsLogger()).
@@ -495,7 +495,7 @@ public class NewEnsembleSource {
                                 .ensembleSize(1)
                                 .writeQuorumSize(1)
                                 .ackQuorumSize(1)
-                                .customMetadata(Collections.emptyMap())
+                                .customMetadata(RackAwarePPTestUtils.getValidCustomMetadata())
                                 .excludeBookie(Collections.emptyList())
                                 .expectedException(null)
                                 .build()
@@ -506,7 +506,7 @@ public class NewEnsembleSource {
                                         InitializeSource.InitializeParameters.builder().
                                                 staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(2, Arrays.asList(1, 2, 3))).
                                                 hashedWheelTimer(RackAwarePPTestUtils.mockTimer()).
-                                                stabilizePeriodSeconds(0).
+                                                stabilizePeriodSeconds(1).
                                                 minNumRacksPerWriteQuorum(2).
                                                 enforceMinNumRacksPerWriteQuorum(false).
                                                 statsLogger(RackAwarePPTestUtils.mockStatsLogger()).
@@ -545,7 +545,7 @@ public class NewEnsembleSource {
                                 .ensembleSize(2)
                                 .writeQuorumSize(1)
                                 .ackQuorumSize(1)
-                                .customMetadata(Collections.emptyMap())
+                                .customMetadata(RackAwarePPTestUtils.getValidCustomMetadata())
                                 .excludeBookie(Collections.emptyList())
                                 .expectedException(null)
                                 .build()
@@ -556,7 +556,7 @@ public class NewEnsembleSource {
                                         InitializeSource.InitializeParameters.builder().
                                                 staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(2, Arrays.asList(1, 2, 3))).
                                                 hashedWheelTimer(RackAwarePPTestUtils.mockTimer()).
-                                                stabilizePeriodSeconds(0).
+                                                stabilizePeriodSeconds(1).
                                                 minNumRacksPerWriteQuorum(2).
                                                 enforceMinNumRacksPerWriteQuorum(false).
                                                 statsLogger(RackAwarePPTestUtils.mockStatsLogger()).
@@ -595,7 +595,7 @@ public class NewEnsembleSource {
                                 .ensembleSize(1)
                                 .writeQuorumSize(1)
                                 .ackQuorumSize(1)
-                                .customMetadata(Collections.emptyMap())
+                                .customMetadata(RackAwarePPTestUtils.getValidCustomMetadata())
                                 .excludeBookie(Collections.emptyList())
                                 .expectedException(null)
                                 .build()
@@ -606,7 +606,7 @@ public class NewEnsembleSource {
                                         InitializeSource.InitializeParameters.builder().
                                                 staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(2, Arrays.asList(1, 2, 3))).
                                                 hashedWheelTimer(RackAwarePPTestUtils.mockTimer()).
-                                                stabilizePeriodSeconds(0).
+                                                stabilizePeriodSeconds(1).
                                                 minNumRacksPerWriteQuorum(2).
                                                 enforceMinNumRacksPerWriteQuorum(true).
                                                 statsLogger(RackAwarePPTestUtils.mockStatsLogger()).
@@ -645,7 +645,7 @@ public class NewEnsembleSource {
                                 .ensembleSize(2)
                                 .writeQuorumSize(1)
                                 .ackQuorumSize(1)
-                                .customMetadata(Collections.emptyMap())
+                                .customMetadata(RackAwarePPTestUtils.getValidCustomMetadata())
                                 .excludeBookie(Collections.emptyList())
                                 .expectedException(null)
                                 .build()
@@ -656,58 +656,8 @@ public class NewEnsembleSource {
                                         InitializeSource.InitializeParameters.builder().
                                                 staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(2, Arrays.asList(1, 2, 3))).
                                                 hashedWheelTimer(RackAwarePPTestUtils.mockTimer()).
-                                                stabilizePeriodSeconds(0).
+                                                stabilizePeriodSeconds(1).
                                                 minNumRacksPerWriteQuorum(1).
-                                                enforceMinNumRacksPerWriteQuorum(true).
-                                                statsLogger(RackAwarePPTestUtils.mockStatsLogger()).
-                                                bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
-                                                expectedException(null).
-                                                numRacks(2).
-                                                build()
-                                )
-                                .writableBookies(Arrays.asList(1, 2))
-                                .readOnlyBookies(Collections.emptyList())
-                                .ensembleSize(2)
-                                .writeQuorumSize(2)
-                                .ackQuorumSize(1)
-                                .customMetadata(Collections.emptyMap())
-                                .excludeBookie(Collections.emptyList())
-                                .expectedException(null)
-                                .build()
-                },
-                {
-                        NewEnsembleParameters.builder()
-                                .initializeParams(
-                                        InitializeSource.InitializeParameters.builder().
-                                                staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(2, Arrays.asList(1, 2, 3))).
-                                                hashedWheelTimer(RackAwarePPTestUtils.mockTimer()).
-                                                stabilizePeriodSeconds(0).
-                                                minNumRacksPerWriteQuorum(2).
-                                                enforceMinNumRacksPerWriteQuorum(true).
-                                                statsLogger(RackAwarePPTestUtils.mockStatsLogger()).
-                                                bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
-                                                expectedException(null).
-                                                numRacks(2).
-                                                build()
-                                )
-                                .writableBookies(Arrays.asList(1, 2))
-                                .readOnlyBookies(Collections.emptyList())
-                                .ensembleSize(2)
-                                .writeQuorumSize(1)
-                                .ackQuorumSize(1)
-                                .customMetadata(Collections.emptyMap())
-                                .excludeBookie(Collections.emptyList())
-                                .expectedException(null)
-                                .build()
-                },
-                {
-                        NewEnsembleParameters.builder()
-                                .initializeParams(
-                                        InitializeSource.InitializeParameters.builder().
-                                                staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(2, Arrays.asList(1, 2, 3))).
-                                                hashedWheelTimer(RackAwarePPTestUtils.mockTimer()).
-                                                stabilizePeriodSeconds(0).
-                                                minNumRacksPerWriteQuorum(2).
                                                 enforceMinNumRacksPerWriteQuorum(true).
                                                 statsLogger(RackAwarePPTestUtils.mockStatsLogger()).
                                                 bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
@@ -729,6 +679,56 @@ public class NewEnsembleSource {
                         NewEnsembleParameters.builder()
                                 .initializeParams(
                                         InitializeSource.InitializeParameters.builder().
+                                                staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(2, Arrays.asList(1, 2, 3))).
+                                                hashedWheelTimer(RackAwarePPTestUtils.mockTimer()).
+                                                stabilizePeriodSeconds(0).
+                                                minNumRacksPerWriteQuorum(2).
+                                                enforceMinNumRacksPerWriteQuorum(true).
+                                                statsLogger(RackAwarePPTestUtils.mockStatsLogger()).
+                                                bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
+                                                expectedException(null).
+                                                numRacks(2).
+                                                build()
+                                )
+                                .writableBookies(Arrays.asList(1, 2))
+                                .readOnlyBookies(Collections.emptyList())
+                                .ensembleSize(2)
+                                .writeQuorumSize(1)
+                                .ackQuorumSize(1)
+                                .customMetadata(RackAwarePPTestUtils.getValidCustomMetadata())
+                                .excludeBookie(Collections.emptyList())
+                                .expectedException(null)
+                                .build()
+                },
+                {
+                        NewEnsembleParameters.builder()
+                                .initializeParams(
+                                        InitializeSource.InitializeParameters.builder().
+                                                staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(2, Arrays.asList(1, 2, 3))).
+                                                hashedWheelTimer(RackAwarePPTestUtils.mockTimer()).
+                                                stabilizePeriodSeconds(1).
+                                                minNumRacksPerWriteQuorum(2).
+                                                enforceMinNumRacksPerWriteQuorum(true).
+                                                statsLogger(RackAwarePPTestUtils.mockStatsLogger()).
+                                                bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
+                                                expectedException(null).
+                                                numRacks(2).
+                                                build()
+                                )
+                                .writableBookies(Arrays.asList(1, 2))
+                                .readOnlyBookies(Collections.emptyList())
+                                .ensembleSize(2)
+                                .writeQuorumSize(2)
+                                .ackQuorumSize(1)
+                                .customMetadata(Collections.emptyMap())
+                                .excludeBookie(Collections.emptyList())
+                                .expectedException(null)
+                                .build()
+                },
+                {
+                        NewEnsembleParameters.builder()
+                                .initializeParams(
+                                        InitializeSource.InitializeParameters.builder().
                                                 staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(1, Arrays.asList(1, 2, 3))).
                                                 hashedWheelTimer(RackAwarePPTestUtils.mockTimer()).
                                                 stabilizePeriodSeconds(0).
@@ -745,7 +745,7 @@ public class NewEnsembleSource {
                                 .ensembleSize(1)
                                 .writeQuorumSize(1)
                                 .ackQuorumSize(1)
-                                .customMetadata(Collections.emptyMap())
+                                .customMetadata(RackAwarePPTestUtils.getValidCustomMetadata())
                                 .excludeBookie(Collections.singletonList(1))
                                 .expectedException(BKException.BKNotEnoughBookiesException.class)
                                 .build()
@@ -756,7 +756,7 @@ public class NewEnsembleSource {
                                         InitializeSource.InitializeParameters.builder().
                                                 staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(1, Arrays.asList(1, 2, 3))).
                                                 hashedWheelTimer(RackAwarePPTestUtils.mockTimer()).
-                                                stabilizePeriodSeconds(0).
+                                                stabilizePeriodSeconds(1).
                                                 minNumRacksPerWriteQuorum(2).
                                                 enforceMinNumRacksPerWriteQuorum(false).
                                                 statsLogger(RackAwarePPTestUtils.mockStatsLogger()).
@@ -795,7 +795,7 @@ public class NewEnsembleSource {
                                 .ensembleSize(1)
                                 .writeQuorumSize(1)
                                 .ackQuorumSize(1)
-                                .customMetadata(Collections.emptyMap())
+                                .customMetadata(RackAwarePPTestUtils.getValidCustomMetadata())
                                 .excludeBookie(Collections.singletonList(1))
                                 .expectedException(BKException.BKNotEnoughBookiesException.class)
                                 .build()
@@ -806,7 +806,7 @@ public class NewEnsembleSource {
                                         InitializeSource.InitializeParameters.builder().
                                                 staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(1, Arrays.asList(1, 2, 3))).
                                                 hashedWheelTimer(RackAwarePPTestUtils.mockTimer()).
-                                                stabilizePeriodSeconds(0).
+                                                stabilizePeriodSeconds(1).
                                                 minNumRacksPerWriteQuorum(2).
                                                 enforceMinNumRacksPerWriteQuorum(true).
                                                 statsLogger(RackAwarePPTestUtils.mockStatsLogger()).
@@ -825,9 +825,6 @@ public class NewEnsembleSource {
                                 .expectedException(BKException.BKNotEnoughBookiesException.class)
                                 .build()
                 },
-
-
-
                 {
                         NewEnsembleParameters.builder()
                                 .initializeParams(
@@ -848,7 +845,7 @@ public class NewEnsembleSource {
                                 .ensembleSize(1)
                                 .writeQuorumSize(1)
                                 .ackQuorumSize(1)
-                                .customMetadata(Collections.emptyMap())
+                                .customMetadata(RackAwarePPTestUtils.getValidCustomMetadata())
                                 .excludeBookie(Collections.singletonList(1))
                                 .expectedException(null)
                                 .build()
@@ -859,7 +856,7 @@ public class NewEnsembleSource {
                                         InitializeSource.InitializeParameters.builder().
                                                 staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(1, Arrays.asList(1, 2, 3))).
                                                 hashedWheelTimer(RackAwarePPTestUtils.mockTimer()).
-                                                stabilizePeriodSeconds(0).
+                                                stabilizePeriodSeconds(1).
                                                 minNumRacksPerWriteQuorum(2).
                                                 enforceMinNumRacksPerWriteQuorum(false).
                                                 statsLogger(RackAwarePPTestUtils.mockStatsLogger()).
@@ -898,7 +895,7 @@ public class NewEnsembleSource {
                                 .ensembleSize(2)
                                 .writeQuorumSize(1)
                                 .ackQuorumSize(1)
-                                .customMetadata(Collections.emptyMap())
+                                .customMetadata(RackAwarePPTestUtils.getValidCustomMetadata())
                                 .excludeBookie(Collections.singletonList(1))
                                 .expectedException(BKException.BKNotEnoughBookiesException.class)
                                 .build()
@@ -909,7 +906,7 @@ public class NewEnsembleSource {
                                         InitializeSource.InitializeParameters.builder().
                                                 staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(1, Arrays.asList(1, 2, 3))).
                                                 hashedWheelTimer(RackAwarePPTestUtils.mockTimer()).
-                                                stabilizePeriodSeconds(0).
+                                                stabilizePeriodSeconds(1).
                                                 minNumRacksPerWriteQuorum(2).
                                                 enforceMinNumRacksPerWriteQuorum(false).
                                                 statsLogger(RackAwarePPTestUtils.mockStatsLogger()).
@@ -948,7 +945,7 @@ public class NewEnsembleSource {
                                 .ensembleSize(1)
                                 .writeQuorumSize(1)
                                 .ackQuorumSize(1)
-                                .customMetadata(Collections.emptyMap())
+                                .customMetadata(RackAwarePPTestUtils.getValidCustomMetadata())
                                 .excludeBookie(Collections.singletonList(1))
                                 .expectedException(null)
                                 .build()
@@ -959,7 +956,7 @@ public class NewEnsembleSource {
                                         InitializeSource.InitializeParameters.builder().
                                                 staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(1, Arrays.asList(1, 2, 3))).
                                                 hashedWheelTimer(RackAwarePPTestUtils.mockTimer()).
-                                                stabilizePeriodSeconds(0).
+                                                stabilizePeriodSeconds(1).
                                                 minNumRacksPerWriteQuorum(2).
                                                 enforceMinNumRacksPerWriteQuorum(true).
                                                 statsLogger(RackAwarePPTestUtils.mockStatsLogger()).
@@ -998,7 +995,7 @@ public class NewEnsembleSource {
                                 .ensembleSize(2)
                                 .writeQuorumSize(1)
                                 .ackQuorumSize(1)
-                                .customMetadata(Collections.emptyMap())
+                                .customMetadata(RackAwarePPTestUtils.getValidCustomMetadata())
                                 .excludeBookie(Collections.singletonList(1))
                                 .expectedException(BKException.BKNotEnoughBookiesException.class)
                                 .build()
@@ -1009,7 +1006,7 @@ public class NewEnsembleSource {
                                         InitializeSource.InitializeParameters.builder().
                                                 staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(1, Arrays.asList(1, 2, 3))).
                                                 hashedWheelTimer(RackAwarePPTestUtils.mockTimer()).
-                                                stabilizePeriodSeconds(0).
+                                                stabilizePeriodSeconds(1).
                                                 minNumRacksPerWriteQuorum(1).
                                                 enforceMinNumRacksPerWriteQuorum(true).
                                                 statsLogger(RackAwarePPTestUtils.mockStatsLogger()).
@@ -1048,9 +1045,34 @@ public class NewEnsembleSource {
                                 .ensembleSize(2)
                                 .writeQuorumSize(1)
                                 .ackQuorumSize(1)
-                                .customMetadata(Collections.emptyMap())
+                                .customMetadata(RackAwarePPTestUtils.getValidCustomMetadata())
                                 .excludeBookie(Collections.singletonList(1))
                                 .expectedException(BKException.BKNotEnoughBookiesException.class)
+                                .build()
+                },
+                {
+                        NewEnsembleParameters.builder()
+                                .initializeParams(
+                                        InitializeSource.InitializeParameters.builder().
+                                                staticDNSResolver(RackAwarePPTestUtils.mockDNSToSwitchMapping(1, Arrays.asList(1, 2, 3))).
+                                                hashedWheelTimer(RackAwarePPTestUtils.mockTimer()).
+                                                stabilizePeriodSeconds(1).
+                                                minNumRacksPerWriteQuorum(2).
+                                                enforceMinNumRacksPerWriteQuorum(true).
+                                                statsLogger(RackAwarePPTestUtils.mockStatsLogger()).
+                                                bookieAddressResolver(RackAwarePPTestUtils.wrapperCreationBookieAddressResolver(Arrays.asList(1, 2, 3))).
+                                                expectedException(null).
+                                                numRacks(1).
+                                                build()
+                                )
+                                .writableBookies(Arrays.asList(1, 2))
+                                .readOnlyBookies(Collections.emptyList())
+                                .ensembleSize(1)
+                                .writeQuorumSize(1)
+                                .ackQuorumSize(1)
+                                .customMetadata(Collections.emptyMap())
+                                .excludeBookie(null)
+                                .expectedException(NullPointerException.class)
                                 .build()
                 }
 
