@@ -13,7 +13,7 @@ import java.util.*;
 
 
 @RunWith(value=Parameterized.class)
-public class InitializeRackAwareEnsemblePlacementPolicyTest {
+public class InitializeREPPTest {
 
     private final InitializeSource.InitializeParameters scenario;
 
@@ -25,7 +25,7 @@ public class InitializeRackAwareEnsemblePlacementPolicyTest {
         return InitializeSource.getParametersConfiguration();
     }
 
-    public InitializeRackAwareEnsemblePlacementPolicyTest(InitializeSource.InitializeParameters scenario) {
+    public InitializeREPPTest(InitializeSource.InitializeParameters scenario) {
         this.scenario = scenario;
     }
 

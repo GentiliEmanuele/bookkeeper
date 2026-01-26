@@ -13,7 +13,7 @@ import org.junit.runners.Parameterized.Parameters;
 import java.util.Collection;
 
 @RunWith(Parameterized.class)
-public class RackAwareEnsemblePlacementPolicyConstructorTest {
+public class REPPConstructorTest {
 
     private final Boolean scenario;
     private RackawareEnsemblePlacementPolicy policy;
@@ -23,7 +23,7 @@ public class RackAwareEnsemblePlacementPolicyConstructorTest {
         return ConstructorSource.getConstructorConfiguration();
     }
 
-    public RackAwareEnsemblePlacementPolicyConstructorTest(Boolean scenario) {
+    public REPPConstructorTest(Boolean scenario) {
         this.scenario = scenario;
     }
 
