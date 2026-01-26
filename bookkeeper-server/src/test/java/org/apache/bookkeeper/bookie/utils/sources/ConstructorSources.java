@@ -117,4 +117,102 @@ public class ConstructorSources {
         });
     }
 
+    @Builder
+    @Getter
+    public static class ThirdConstructorParameters {
+        ByteBufAllocator byteBufAllocator;
+        FileChannel fc;
+        int writeCapacity;
+        int readCapacity;
+        long unpersistedBytesBounds;
+        Class<? extends Throwable> expectedException;
+    }
+
+    public static Collection<Object[]> getThirdConstructorConfiguration() throws IOException {
+        return Arrays.asList(new Object[][] {
+                {
+                    ThirdConstructorParameters.builder()
+                        .byteBufAllocator(ByteBufAllocator.DEFAULT)
+                        .fc(BufferedChannelUtils.validFileChannel())
+                        .writeCapacity(1024)
+                        .readCapacity(0)
+                        .unpersistedBytesBounds(0)
+                        .expectedException(null)
+                        .build()
+                },
+                {
+                    ThirdConstructorParameters.builder()
+                        .byteBufAllocator(ByteBufAllocator.DEFAULT)
+                        .fc(BufferedChannelUtils.validFileChannel())
+
+                        .writeCapacity(1024)
+                        .readCapacity(1024)
+                        .unpersistedBytesBounds(0)
+                        .expectedException(null)
+                        .build()
+                },
+                {
+                    ThirdConstructorParameters.builder()
+                        .byteBufAllocator(ByteBufAllocator.DEFAULT)
+                        .fc(BufferedChannelUtils.validFileChannel())
+                        .writeCapacity(1024)
+                        .readCapacity(1024)
+                        .unpersistedBytesBounds(128)
+                        .expectedException(null)
+                        .build()
+                },
+                {
+                    ThirdConstructorParameters.builder()
+                        .byteBufAllocator(ByteBufAllocator.DEFAULT)
+                        .fc(BufferedChannelUtils.validFileChannel())
+                        .writeCapacity(0)
+                        .readCapacity(1024)
+                        .unpersistedBytesBounds(128)
+                        .expectedException(null)
+                        .build()
+                },
+                {
+                    ThirdConstructorParameters.builder()
+                        .byteBufAllocator(ByteBufAllocator.DEFAULT)
+                        .fc(BufferedChannelUtils.validFileChannel())
+                        .writeCapacity(1024)
+                        .readCapacity(0)
+                        .unpersistedBytesBounds(128)
+                        .expectedException(null)
+                        .build()
+                },
+                {
+                    ThirdConstructorParameters.builder()
+                        .byteBufAllocator(ByteBufAllocator.DEFAULT)
+                        .fc(BufferedChannelUtils.validFileChannel())
+                        .writeCapacity(1024)
+                        .readCapacity(0)
+                        .unpersistedBytesBounds(128)
+                        .expectedException(null)
+                        .build()
+                },
+                {
+                    ThirdConstructorParameters.builder()
+                        .byteBufAllocator(null)
+                        .fc(BufferedChannelUtils.validFileChannel())
+                        .writeCapacity(1024)
+                        .readCapacity(0)
+                        .unpersistedBytesBounds(0)
+                        .expectedException(NullPointerException.class)
+                        .build()
+                },
+                {
+                    ThirdConstructorParameters.builder()
+                        .byteBufAllocator(ByteBufAllocator.DEFAULT)
+                        .fc(null)
+                        .writeCapacity(1024)
+                        .readCapacity(0)
+                        .unpersistedBytesBounds(0)
+                        .expectedException(NullPointerException.class)
+                        .build()
+                }
+        });
+    }
+
 }
+
