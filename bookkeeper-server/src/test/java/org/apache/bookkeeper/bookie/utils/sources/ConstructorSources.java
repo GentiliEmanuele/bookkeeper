@@ -58,4 +58,63 @@ public class ConstructorSources {
         });
     }
 
+    @Builder
+    @Getter
+    public static class SecondConstructorParameters {
+        ByteBufAllocator byteBufAllocator;
+        FileChannel fc;
+        int capacity;
+        long unpersistedBytesBounds;
+        Class<? extends Throwable> expectedException;
+    }
+
+    public static Collection<Object[]> getSecondConstructorConfiguration() throws IOException {
+        return Arrays.asList(new Object[][] {
+                {
+                    SecondConstructorParameters.builder()
+                        .byteBufAllocator(ByteBufAllocator.DEFAULT)
+                        .fc(BufferedChannelUtils.validFileChannel())
+                        .capacity(1024)
+                        .unpersistedBytesBounds(0)
+                        .expectedException(null)
+                        .build()
+                },
+                {
+                    SecondConstructorParameters.builder()
+                        .byteBufAllocator(ByteBufAllocator.DEFAULT)
+                        .fc(BufferedChannelUtils.validFileChannel())
+                        .capacity(1024)
+                        .unpersistedBytesBounds(128)
+                        .expectedException(null)
+                        .build()
+                },
+                {
+                    SecondConstructorParameters.builder()
+                        .byteBufAllocator(ByteBufAllocator.DEFAULT)
+                        .fc(BufferedChannelUtils.validFileChannel())
+                        .capacity(0)
+                        .unpersistedBytesBounds(128)
+                        .build()
+                },
+                {
+                    SecondConstructorParameters.builder()
+                        .byteBufAllocator(null)
+                        .fc(BufferedChannelUtils.validFileChannel())
+                        .capacity(1024)
+                        .unpersistedBytesBounds(0)
+                        .expectedException(NullPointerException.class)
+                        .build()
+                },
+                {
+                    SecondConstructorParameters.builder()
+                        .byteBufAllocator(ByteBufAllocator.DEFAULT)
+                        .fc(null)
+                        .capacity(1024)
+                        .unpersistedBytesBounds(128)
+                        .expectedException(NullPointerException.class)
+                        .build()
+                }
+        });
+    }
+
 }
