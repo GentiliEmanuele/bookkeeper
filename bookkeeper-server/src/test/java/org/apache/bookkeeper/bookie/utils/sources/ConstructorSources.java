@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 import org.apache.bookkeeper.bookie.utils.BufferedChannelUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.util.Arrays;
@@ -16,7 +17,7 @@ public class ConstructorSources {
     @Getter
     public static class FirstConstructorParameters {
         ByteBufAllocator byteBufAllocator;
-        FileChannel fc;
+        File file;
         int capacity;
         Class<? extends Throwable> expectedException;
     }
@@ -26,23 +27,23 @@ public class ConstructorSources {
                 {
                     FirstConstructorParameters.builder()
                             .byteBufAllocator(ByteBufAllocator.DEFAULT)
-                            .fc(BufferedChannelUtils.validFileChannel())
+                            .file(BufferedChannelUtils.validFileChannel())
                             .capacity(1024)
                             .expectedException(null)
                             .build()
                 },
                 {
                         FirstConstructorParameters.builder()
-                                .byteBufAllocator(ByteBufAllocator.DEFAULT)
-                                .fc(BufferedChannelUtils.validFileChannel())
-                                .capacity(0)
-                                .expectedException(null)
-                                .build()
+                            .byteBufAllocator(ByteBufAllocator.DEFAULT)
+                            .file(BufferedChannelUtils.validFileChannel())
+                            .capacity(0)
+                            .expectedException(null)
+                            .build()
                 },
                 {
                     FirstConstructorParameters.builder()
                         .byteBufAllocator(null)
-                        .fc(BufferedChannelUtils.validFileChannel())
+                        .file(BufferedChannelUtils.validFileChannel())
                         .capacity(1024)
                         .expectedException(NullPointerException.class)
                         .build()
@@ -50,7 +51,7 @@ public class ConstructorSources {
                 {
                     FirstConstructorParameters.builder()
                         .byteBufAllocator(ByteBufAllocator.DEFAULT)
-                        .fc(null)
+                        .file(null)
                         .capacity(1024)
                         .expectedException(NullPointerException.class)
                         .build()
@@ -62,7 +63,7 @@ public class ConstructorSources {
     @Getter
     public static class SecondConstructorParameters {
         ByteBufAllocator byteBufAllocator;
-        FileChannel fc;
+        File file;
         int capacity;
         long unpersistedBytesBounds;
         Class<? extends Throwable> expectedException;
@@ -73,7 +74,7 @@ public class ConstructorSources {
                 {
                     SecondConstructorParameters.builder()
                         .byteBufAllocator(ByteBufAllocator.DEFAULT)
-                        .fc(BufferedChannelUtils.validFileChannel())
+                        .file(BufferedChannelUtils.validFileChannel())
                         .capacity(1024)
                         .unpersistedBytesBounds(0)
                         .expectedException(null)
@@ -82,7 +83,7 @@ public class ConstructorSources {
                 {
                     SecondConstructorParameters.builder()
                         .byteBufAllocator(ByteBufAllocator.DEFAULT)
-                        .fc(BufferedChannelUtils.validFileChannel())
+                        .file(BufferedChannelUtils.validFileChannel())
                         .capacity(1024)
                         .unpersistedBytesBounds(128)
                         .expectedException(null)
@@ -91,7 +92,7 @@ public class ConstructorSources {
                 {
                     SecondConstructorParameters.builder()
                         .byteBufAllocator(ByteBufAllocator.DEFAULT)
-                        .fc(BufferedChannelUtils.validFileChannel())
+                        .file(BufferedChannelUtils.validFileChannel())
                         .capacity(0)
                         .unpersistedBytesBounds(128)
                         .build()
@@ -99,7 +100,7 @@ public class ConstructorSources {
                 {
                     SecondConstructorParameters.builder()
                         .byteBufAllocator(null)
-                        .fc(BufferedChannelUtils.validFileChannel())
+                        .file(BufferedChannelUtils.validFileChannel())
                         .capacity(1024)
                         .unpersistedBytesBounds(0)
                         .expectedException(NullPointerException.class)
@@ -108,7 +109,7 @@ public class ConstructorSources {
                 {
                     SecondConstructorParameters.builder()
                         .byteBufAllocator(ByteBufAllocator.DEFAULT)
-                        .fc(null)
+                        .file(null)
                         .capacity(1024)
                         .unpersistedBytesBounds(128)
                         .expectedException(NullPointerException.class)
@@ -121,7 +122,7 @@ public class ConstructorSources {
     @Getter
     public static class ThirdConstructorParameters {
         ByteBufAllocator byteBufAllocator;
-        FileChannel fc;
+        File file;
         int writeCapacity;
         int readCapacity;
         long unpersistedBytesBounds;
@@ -133,7 +134,7 @@ public class ConstructorSources {
                 {
                     ThirdConstructorParameters.builder()
                         .byteBufAllocator(ByteBufAllocator.DEFAULT)
-                        .fc(BufferedChannelUtils.validFileChannel())
+                        .file(BufferedChannelUtils.validFileChannel())
                         .writeCapacity(1024)
                         .readCapacity(0)
                         .unpersistedBytesBounds(0)
@@ -143,7 +144,7 @@ public class ConstructorSources {
                 {
                     ThirdConstructorParameters.builder()
                         .byteBufAllocator(ByteBufAllocator.DEFAULT)
-                        .fc(BufferedChannelUtils.validFileChannel())
+                        .file(BufferedChannelUtils.validFileChannel())
 
                         .writeCapacity(1024)
                         .readCapacity(1024)
@@ -154,7 +155,7 @@ public class ConstructorSources {
                 {
                     ThirdConstructorParameters.builder()
                         .byteBufAllocator(ByteBufAllocator.DEFAULT)
-                        .fc(BufferedChannelUtils.validFileChannel())
+                        .file(BufferedChannelUtils.validFileChannel())
                         .writeCapacity(1024)
                         .readCapacity(1024)
                         .unpersistedBytesBounds(128)
@@ -164,7 +165,7 @@ public class ConstructorSources {
                 {
                     ThirdConstructorParameters.builder()
                         .byteBufAllocator(ByteBufAllocator.DEFAULT)
-                        .fc(BufferedChannelUtils.validFileChannel())
+                        .file(BufferedChannelUtils.validFileChannel())
                         .writeCapacity(0)
                         .readCapacity(1024)
                         .unpersistedBytesBounds(128)
@@ -174,7 +175,7 @@ public class ConstructorSources {
                 {
                     ThirdConstructorParameters.builder()
                         .byteBufAllocator(ByteBufAllocator.DEFAULT)
-                        .fc(BufferedChannelUtils.validFileChannel())
+                        .file(BufferedChannelUtils.validFileChannel())
                         .writeCapacity(1024)
                         .readCapacity(0)
                         .unpersistedBytesBounds(128)
@@ -184,7 +185,7 @@ public class ConstructorSources {
                 {
                     ThirdConstructorParameters.builder()
                         .byteBufAllocator(ByteBufAllocator.DEFAULT)
-                        .fc(BufferedChannelUtils.validFileChannel())
+                        .file(BufferedChannelUtils.validFileChannel())
                         .writeCapacity(1024)
                         .readCapacity(0)
                         .unpersistedBytesBounds(128)
@@ -194,7 +195,7 @@ public class ConstructorSources {
                 {
                     ThirdConstructorParameters.builder()
                         .byteBufAllocator(null)
-                        .fc(BufferedChannelUtils.validFileChannel())
+                        .file(BufferedChannelUtils.validFileChannel())
                         .writeCapacity(1024)
                         .readCapacity(0)
                         .unpersistedBytesBounds(0)
@@ -204,7 +205,7 @@ public class ConstructorSources {
                 {
                     ThirdConstructorParameters.builder()
                         .byteBufAllocator(ByteBufAllocator.DEFAULT)
-                        .fc(null)
+                        .file(null)
                         .writeCapacity(1024)
                         .readCapacity(0)
                         .unpersistedBytesBounds(0)

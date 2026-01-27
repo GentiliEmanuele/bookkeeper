@@ -26,17 +26,12 @@ public class BufferedChannelUtils {
         return byteBufAllocatorMock;
     }
 
-    public static FileChannel validFileChannel() throws IOException {
+    public static File validFileChannel() throws IOException {
         // Create a temporary file
         File tempFile = File.createTempFile("buff_channel_test", ".txt");
 
         // Set the file deletion at the process end
         tempFile.deleteOnExit();
-
-        // Open the file in read-write mode
-        // RandomAccessFile is needed for obtain a valid file channel
-        RandomAccessFile raf = new RandomAccessFile(tempFile, "rw");
-        FileChannel fileChannel = raf.getChannel();
-        return fileChannel;
+        return tempFile;
     }
 }
