@@ -1,10 +1,13 @@
 package org.apache.bookkeeper.bookie;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.util.ReferenceCountUtil;
+import org.apache.bookkeeper.bookie.utils.BufferedChannelUtils;
 import org.apache.bookkeeper.bookie.utils.sources.ConstructorSources;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
@@ -12,6 +15,7 @@ import org.junit.runners.Parameterized.Parameters;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
+import java.time.Duration;
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -63,6 +67,27 @@ public class BufferedChannelFirstConstructorTest {
             Assert.assertThrows(scenario.getExpectedException(), () -> {
                new BufferedChannel(scenario.getByteBufAllocator(), this.fc, scenario.getCapacity());
             });
+        }
+    }
+
+    @Test
+    public void testClear() throws IOException {
+        if (scenario.getExpectedException() == null) {
+            // Create a bufferedChannel
+            BufferedChannel bufferedChannel = new BufferedChannel(scenario.getByteBufAllocator(), fc, scenario.getCapacity());
+
+            // Write some byte into it
+            ByteBuf src = BufferedChannelUtils.createFullByteBuf(128);
+            Assert.assertNotNull(src);
+            // Use a timer to avoid infinite loop
+            Assertions.assertTimeoutPreemptively(Duration.ofMillis(500), () -> bufferedChannel.write(src));
+
+            // Check if position is updated after write
+            Assert.assertEquals(128, bufferedChannel.getNumOfBytesInWriteBuffer());
+            // Clear the buffer
+            bufferedChannel.clear();
+            // Check if the buffer position is returned to 0
+            Assert.assertEquals(0, bufferedChannel.getNumOfBytesInWriteBuffer());
         }
     }
 

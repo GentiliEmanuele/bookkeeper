@@ -20,7 +20,7 @@ public class BufferedChannelUtils {
 
     /**
      * Create a byte buffer of the specified size and write size byte in the buffer.
-     * Use size = 0 for empty buffer and size = -1 for null buffer
+     * Use size = -1 for null buffer
      * @param size size of the buffer
      * @return the created buffer
      */
@@ -31,5 +31,14 @@ public class BufferedChannelUtils {
             buffer.writeByte((byte) i);
         }
         return buffer;
+    }
+
+    /**
+     * Create a buffer of the specified size without write any byte into
+     * @param size size of the buffer
+     * @return the created buffer
+     */
+    public static ByteBuf createAnEmptyBuffer(int size) {
+        return Unpooled.buffer(size);
     }
 }
