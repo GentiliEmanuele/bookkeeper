@@ -12,9 +12,11 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
+import java.nio.file.Files;
 import java.util.Collection;
 
 @RunWith(Parameterized.class)
@@ -22,6 +24,7 @@ public class FlushAndForceMetadataIfRegularFlushTest {
 
     private final FlushAndForceMetadataSource.FlushAndForceMedataParameters scenario;
     private BufferedChannel bufferedChannel;
+    private ByteBuf expectedPayload;
 
     @Parameters
     public static Collection<Object[]> data() throws IOException {
@@ -34,7 +37,12 @@ public class FlushAndForceMetadataIfRegularFlushTest {
 
     @Before
     public void setUp() throws Exception {
-        RandomAccessFile raf = new RandomAccessFile(scenario.getConstructorParameters().getFile(), "rw");
+        // Ensure the file is clean before the test
+        File file = scenario.getConstructorParameters().getFile();
+        if (file.exists()) {
+            file.delete();
+        }
+        RandomAccessFile raf = new RandomAccessFile(file, "rw");
         FileChannel fc = raf.getChannel();
         bufferedChannel = new BufferedChannel(
                 scenario.getConstructorParameters().getByteBufAllocator(),
@@ -43,20 +51,35 @@ public class FlushAndForceMetadataIfRegularFlushTest {
                 scenario.getConstructorParameters().getReadCapacity(),
                 scenario.getConstructorParameters().getUnpersistedBytesBounds());
 
-        ByteBuf byteBuf = BufferedChannelUtils.createFullByteBuf(scenario.getSize());
-        Assertions.assertNotNull(byteBuf);
-        bufferedChannel.write(byteBuf);
+        expectedPayload = BufferedChannelUtils.createFullByteBuf(scenario.getSize());
+        Assertions.assertNotNull(expectedPayload);
+        bufferedChannel.write(expectedPayload);
     }
 
     @Test
     public void testFlushAndForceMetadata() throws IOException {
         if (scenario.getExpectedException() == null) {
+            File file = scenario.getConstructorParameters().getFile();
             bufferedChannel.flushAndForceWriteIfRegularFlush(scenario.isForceMetadata());
             if (scenario.getConstructorParameters().getUnpersistedBytesBounds() > 0) {
                 Assert.assertEquals(scenario.getSize(), bufferedChannel.writeBufferStartPosition.get());
+
+                // Read all byte from the file
+                byte[] fileContent = Files.readAllBytes(file.toPath());
+
+                // Get the byte from the ByteBuf used for write
+                byte[] expectedBytes = new byte[expectedPayload.readableBytes()];
+                expectedPayload.getBytes(expectedPayload.readerIndex(), expectedBytes);
+
+                // Check if the length are the same
+                Assert.assertEquals(expectedBytes.length, fileContent.length);
+                Assert.assertArrayEquals(expectedBytes, fileContent);
             } else {
                 // If call flushAndForceWriteIfRegularFlush but unpersistedByteBound = 0 flush and force are not called
                 Assert.assertEquals(0, bufferedChannel.writeBufferStartPosition.get());
+
+                // If no flush occur expected payload is empty
+                Assertions.assertEquals(0, Files.readAllBytes(file.toPath()).length);
             }
         } else {
             Assertions.assertThrows(scenario.getExpectedException(), () -> bufferedChannel.flushAndForceWrite(scenario.isForceMetadata()));

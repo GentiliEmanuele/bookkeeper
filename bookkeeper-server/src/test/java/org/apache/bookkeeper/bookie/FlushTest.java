@@ -2,7 +2,7 @@ package org.apache.bookkeeper.bookie;
 
 import io.netty.buffer.ByteBuf;
 import org.apache.bookkeeper.bookie.utils.BufferedChannelUtils;
-import org.apache.bookkeeper.bookie.utils.sources.FlushAndForceMetadataSource;
+import org.apache.bookkeeper.bookie.utils.sources.FlushSource;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -18,19 +18,19 @@ import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.util.Collection;
 
-
 @RunWith(Parameterized.class)
-public class FlushAndForceMetadataTest {
-    private final FlushAndForceMetadataSource.FlushAndForceMedataParameters scenario;
+public class FlushTest {
+
+    private final FlushSource.FlushParameters scenario;
     private BufferedChannel bufferedChannel;
     private ByteBuf expectedPayload;
 
     @Parameters
     public static Collection<Object[]> data() throws IOException {
-        return FlushAndForceMetadataSource.getFlushAndForceMetadataParameters();
+        return FlushSource.getFlushAndForceMetadataParameters();
     }
 
-    public FlushAndForceMetadataTest(FlushAndForceMetadataSource.FlushAndForceMedataParameters scenario) {
+    public FlushTest(FlushSource.FlushParameters scenario) {
         this.scenario = scenario;
     }
 
@@ -56,10 +56,10 @@ public class FlushAndForceMetadataTest {
     }
 
     @Test
-    public void testFlushAndForceMetadata() throws IOException {
+    public void testFlush() throws Exception {
         if (scenario.getExpectedException() == null) {
             File file = scenario.getConstructorParameters().getFile();
-            bufferedChannel.flushAndForceWrite(scenario.isForceMetadata());
+            bufferedChannel.flush();
             Assert.assertEquals(scenario.getSize(), bufferedChannel.writeBufferStartPosition.get());
 
             // Read all byte from the file
@@ -73,7 +73,7 @@ public class FlushAndForceMetadataTest {
             Assert.assertEquals(expectedBytes.length, fileContent.length);
             Assert.assertArrayEquals(expectedBytes, fileContent);
         } else {
-            Assertions.assertThrows(scenario.getExpectedException(), () -> bufferedChannel.flushAndForceWrite(scenario.isForceMetadata()));
+            Assertions.assertThrows(scenario.getExpectedException(), () -> bufferedChannel.flush());
         }
     }
 }
