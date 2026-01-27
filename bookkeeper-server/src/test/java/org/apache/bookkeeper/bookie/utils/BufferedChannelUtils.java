@@ -1,30 +1,13 @@
 package org.apache.bookkeeper.bookie.utils;
 
-import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.nio.channels.FileChannel;
 
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class BufferedChannelUtils {
-
-    public static ByteBufAllocator mockByteBufAllocator() {
-        ByteBufAllocator byteBufAllocatorMock = mock(ByteBufAllocator.class);
-
-        // When buffered channel require a buffer, mock must return a true memory container
-        when(byteBufAllocatorMock.buffer(anyInt(), anyInt()))
-                .thenAnswer(invocation -> {
-                    int capacity = invocation.getArgument(0);
-                    return Unpooled.buffer(capacity);
-                });
-        return byteBufAllocatorMock;
-    }
 
     public static File validFileChannel() throws IOException {
         // Create a temporary file
@@ -33,5 +16,20 @@ public class BufferedChannelUtils {
         // Set the file deletion at the process end
         tempFile.deleteOnExit();
         return tempFile;
+    }
+
+    /**
+     * Create a byte buffer of the specified size and write size byte in the buffer.
+     * Use size = 0 for empty buffer and size = -1 for null buffer
+     * @param size size of the buffer
+     * @return the created buffer
+     */
+    public static ByteBuf createFullByteBuf(int size) {
+        if (size == -1) return null;
+        ByteBuf buffer = Unpooled.buffer(size);
+        for (int i = 0; i < size; i++) {
+            buffer.writeByte((byte) i);
+        }
+        return buffer;
     }
 }

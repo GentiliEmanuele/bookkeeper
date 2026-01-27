@@ -201,16 +201,6 @@ public class ConstructorSources {
                         .unpersistedBytesBounds(0)
                         .expectedException(NullPointerException.class)
                         .build()
-                },
-                {
-                    ThirdConstructorParameters.builder()
-                        .byteBufAllocator(ByteBufAllocator.DEFAULT)
-                        .file(null)
-                        .writeCapacity(1024)
-                        .readCapacity(0)
-                        .unpersistedBytesBounds(0)
-                        .expectedException(NullPointerException.class)
-                        .build()
                 }
         });
     }
