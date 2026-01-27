@@ -145,7 +145,6 @@ public class ConstructorSources {
                     ThirdConstructorParameters.builder()
                         .byteBufAllocator(ByteBufAllocator.DEFAULT)
                         .file(BufferedChannelUtils.validFileChannel())
-
                         .writeCapacity(1024)
                         .readCapacity(1024)
                         .unpersistedBytesBounds(0)
