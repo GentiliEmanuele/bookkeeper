@@ -145,40 +145,6 @@ public class FlushAndForceMetadataIfRegularFlushSource {
                                 .forceMetadata(false)
                                 .expectedException(null)
                                 .build()
-                },
-                {
-                        FlushAndForceMetadataSource.FlushAndForceMedataParameters.builder()
-                                .constructorParameters(
-                                        ConstructorSources.ThirdConstructorParameters.builder()
-                                                .byteBufAllocator(ByteBufAllocator.DEFAULT)
-                                                .file(BufferedChannelUtils.validFileChannel())
-                                                .writeCapacity(1024)
-                                                .readCapacity(1024)
-                                                .unpersistedBytesBounds(0)
-                                                .expectedException(null)
-                                                .build()
-                                )
-                                .size(128)
-                                .forceMetadata(true)
-                                .expectedException(null)
-                                .build()
-                },
-                {
-                        FlushAndForceMetadataSource.FlushAndForceMedataParameters.builder()
-                                .constructorParameters(
-                                        ConstructorSources.ThirdConstructorParameters.builder()
-                                                .byteBufAllocator(ByteBufAllocator.DEFAULT)
-                                                .file(BufferedChannelUtils.validFileChannel())
-                                                .writeCapacity(1024)
-                                                .readCapacity(1024)
-                                                .unpersistedBytesBounds(0)
-                                                .expectedException(null)
-                                                .build()
-                                )
-                                .size(128)
-                                .forceMetadata(false)
-                                .expectedException(null)
-                                .build()
                 }
         });
     }

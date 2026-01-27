@@ -76,4 +76,34 @@ public class FlushAndForceMetadataTest {
             Assertions.assertThrows(scenario.getExpectedException(), () -> bufferedChannel.flushAndForceWrite(scenario.isForceMetadata()));
         }
     }
+
+    @Test
+    public void testForceWrite() throws IOException {
+        if (scenario.getExpectedException() == null) {
+            File file = scenario.getConstructorParameters().getFile();
+            long persistentByte = bufferedChannel.forceWrite(scenario.isForceMetadata());
+
+            // Before the flush operations persistentByte are 0
+            Assert.assertEquals(0, persistentByte);
+            // The length of the file content is 0
+            byte[] fileContent = Files.readAllBytes(file.toPath());
+            Assert.assertEquals(0, fileContent.length);
+
+            bufferedChannel.flush();
+            persistentByte = bufferedChannel.forceWrite(scenario.isForceMetadata());
+
+            Assert.assertEquals(scenario.getSize(), persistentByte);
+
+            // Read all byte from the file
+            fileContent = Files.readAllBytes(file.toPath());
+
+            // Get the byte from the ByteBuf used for write
+            byte[] expectedBytes = new byte[expectedPayload.readableBytes()];
+            expectedPayload.getBytes(expectedPayload.readerIndex(), expectedBytes);
+
+            // Check if the length are the same
+            Assert.assertEquals(expectedBytes.length, fileContent.length);
+            Assert.assertArrayEquals(expectedBytes, fileContent);
+        }
+    }
 }

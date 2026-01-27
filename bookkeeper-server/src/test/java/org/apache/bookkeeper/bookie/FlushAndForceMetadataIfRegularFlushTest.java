@@ -85,4 +85,47 @@ public class FlushAndForceMetadataIfRegularFlushTest {
             Assertions.assertThrows(scenario.getExpectedException(), () -> bufferedChannel.flushAndForceWrite(scenario.isForceMetadata()));
         }
     }
+
+    @Test
+    public void testForceWrite() throws IOException {
+        if (scenario.getExpectedException() == null) {
+            File file = scenario.getConstructorParameters().getFile();
+            long forcedWriteByte = bufferedChannel.forceWrite(scenario.isForceMetadata());
+            if (scenario.getSize() >= bufferedChannel.unpersistedBytesBound) {
+                Assert.assertEquals(scenario.getSize(), forcedWriteByte);
+
+                // Check the content of the file
+                // Read all byte from the file
+                byte[] fileContent = Files.readAllBytes(file.toPath());
+
+                // Get the byte from the ByteBuf used for write
+                byte[] expectedBytes = new byte[expectedPayload.readableBytes()];
+                expectedPayload.getBytes(expectedPayload.readerIndex(), expectedBytes);
+
+                // Check if the length are the same
+                Assert.assertEquals(expectedBytes.length, fileContent.length);
+                Assert.assertArrayEquals(expectedBytes, fileContent);
+            } else {
+                Assert.assertEquals(0, forcedWriteByte);
+
+                // At this point data is not on the file
+                byte[] fileContent = Files.readAllBytes(file.toPath());
+                Assertions.assertEquals(0, fileContent.length);
+
+                // Execute a flush operation and repeat the check
+                bufferedChannel.flush();
+                fileContent = Files.readAllBytes(file.toPath());
+
+                Assertions.assertEquals(scenario.getSize(), fileContent.length);
+
+                // Get the byte from the ByteBuf used for write
+                byte[] expectedBytes = new byte[expectedPayload.readableBytes()];
+                expectedPayload.getBytes(expectedPayload.readerIndex(), expectedBytes);
+
+                // Check if the length are the same
+                Assert.assertEquals(expectedBytes.length, fileContent.length);
+                Assert.assertArrayEquals(expectedBytes, fileContent);
+            }
+        }
+    }
 }
