@@ -26,7 +26,7 @@ public class FlushAndForceMetadataSource {
                             .constructorParameters(
                                 ConstructorSources.ThirdConstructorParameters.builder()
                                         .byteBufAllocator(ByteBufAllocator.DEFAULT)
-                                        .file(BufferedChannelUtils.validFileChannel())
+                                        .file(BufferedChannelUtils.createTempFile())
                                         .writeCapacity(1024)
                                         .readCapacity(0)
                                         .unpersistedBytesBounds(0)
@@ -43,7 +43,7 @@ public class FlushAndForceMetadataSource {
                                 .constructorParameters(
                                         ConstructorSources.ThirdConstructorParameters.builder()
                                                 .byteBufAllocator(ByteBufAllocator.DEFAULT)
-                                                .file(BufferedChannelUtils.validFileChannel())
+                                                .file(BufferedChannelUtils.createTempFile())
                                                 .writeCapacity(1024)
                                                 .readCapacity(0)
                                                 .unpersistedBytesBounds(0)
@@ -60,7 +60,7 @@ public class FlushAndForceMetadataSource {
                                 .constructorParameters(
                                         ConstructorSources.ThirdConstructorParameters.builder()
                                                 .byteBufAllocator(ByteBufAllocator.DEFAULT)
-                                                .file(BufferedChannelUtils.validFileChannel())
+                                                .file(BufferedChannelUtils.createTempFile())
                                                 .writeCapacity(1024)
                                                 .readCapacity(0)
                                                 .unpersistedBytesBounds(0)
@@ -77,7 +77,7 @@ public class FlushAndForceMetadataSource {
                                 .constructorParameters(
                                         ConstructorSources.ThirdConstructorParameters.builder()
                                                 .byteBufAllocator(ByteBufAllocator.DEFAULT)
-                                                .file(BufferedChannelUtils.validFileChannel())
+                                                .file(BufferedChannelUtils.createTempFile())
                                                 .writeCapacity(1024)
                                                 .readCapacity(0)
                                                 .unpersistedBytesBounds(0)
@@ -94,7 +94,7 @@ public class FlushAndForceMetadataSource {
                         .constructorParameters(
                             ConstructorSources.ThirdConstructorParameters.builder()
                                     .byteBufAllocator(ByteBufAllocator.DEFAULT)
-                                    .file(BufferedChannelUtils.validFileChannel())
+                                    .file(BufferedChannelUtils.createTempFile())
                                     .writeCapacity(1024)
                                     .readCapacity(1024)
                                     .unpersistedBytesBounds(0)
@@ -111,7 +111,7 @@ public class FlushAndForceMetadataSource {
                                 .constructorParameters(
                                         ConstructorSources.ThirdConstructorParameters.builder()
                                                 .byteBufAllocator(ByteBufAllocator.DEFAULT)
-                                                .file(BufferedChannelUtils.validFileChannel())
+                                                .file(BufferedChannelUtils.createTempFile())
                                                 .writeCapacity(1024)
                                                 .readCapacity(1024)
                                                 .unpersistedBytesBounds(0)
@@ -128,7 +128,7 @@ public class FlushAndForceMetadataSource {
                                 .constructorParameters(
                                         ConstructorSources.ThirdConstructorParameters.builder()
                                                 .byteBufAllocator(ByteBufAllocator.DEFAULT)
-                                                .file(BufferedChannelUtils.validFileChannel())
+                                                .file(BufferedChannelUtils.createTempFile())
                                                 .writeCapacity(1024)
                                                 .readCapacity(1024)
                                                 .unpersistedBytesBounds(0)
@@ -145,7 +145,7 @@ public class FlushAndForceMetadataSource {
                                 .constructorParameters(
                                         ConstructorSources.ThirdConstructorParameters.builder()
                                                 .byteBufAllocator(ByteBufAllocator.DEFAULT)
-                                                .file(BufferedChannelUtils.validFileChannel())
+                                                .file(BufferedChannelUtils.createTempFile())
                                                 .writeCapacity(1024)
                                                 .readCapacity(1024)
                                                 .unpersistedBytesBounds(0)

@@ -25,7 +25,7 @@ public class FlushSource {
                                 .constructorParameters(
                                         ConstructorSources.ThirdConstructorParameters.builder()
                                                 .byteBufAllocator(ByteBufAllocator.DEFAULT)
-                                                .file(BufferedChannelUtils.validFileChannel())
+                                                .file(BufferedChannelUtils.createTempFile())
                                                 .writeCapacity(1024)
                                                 .readCapacity(0)
                                                 .unpersistedBytesBounds(128)
@@ -41,7 +41,7 @@ public class FlushSource {
                                 .constructorParameters(
                                         ConstructorSources.ThirdConstructorParameters.builder()
                                                 .byteBufAllocator(ByteBufAllocator.DEFAULT)
-                                                .file(BufferedChannelUtils.validFileChannel())
+                                                .file(BufferedChannelUtils.createTempFile())
                                                 .writeCapacity(1024)
                                                 .readCapacity(0)
                                                 .unpersistedBytesBounds(128)
@@ -57,7 +57,7 @@ public class FlushSource {
                                 .constructorParameters(
                                         ConstructorSources.ThirdConstructorParameters.builder()
                                                 .byteBufAllocator(ByteBufAllocator.DEFAULT)
-                                                .file(BufferedChannelUtils.validFileChannel())
+                                                .file(BufferedChannelUtils.createTempFile())
                                                 .writeCapacity(1024)
                                                 .readCapacity(1024)
                                                 .unpersistedBytesBounds(128)
@@ -73,7 +73,7 @@ public class FlushSource {
                                 .constructorParameters(
                                         ConstructorSources.ThirdConstructorParameters.builder()
                                                 .byteBufAllocator(ByteBufAllocator.DEFAULT)
-                                                .file(BufferedChannelUtils.validFileChannel())
+                                                .file(BufferedChannelUtils.createTempFile())
                                                 .writeCapacity(1024)
                                                 .readCapacity(1024)
                                                 .unpersistedBytesBounds(128)
@@ -89,7 +89,7 @@ public class FlushSource {
                                 .constructorParameters(
                                         ConstructorSources.ThirdConstructorParameters.builder()
                                                 .byteBufAllocator(ByteBufAllocator.DEFAULT)
-                                                .file(BufferedChannelUtils.validFileChannel())
+                                                .file(BufferedChannelUtils.createTempFile())
                                                 .writeCapacity(1024)
                                                 .readCapacity(1024)
                                                 .unpersistedBytesBounds(0)

@@ -1,8 +1,11 @@
 package org.apache.bookkeeper.bookie;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.Unpooled;
 import org.apache.bookkeeper.bookie.utils.BufferedChannelUtils;
 import org.apache.bookkeeper.bookie.utils.sources.ReadSource;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
@@ -14,6 +17,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
+import java.nio.file.Files;
+import java.util.Arrays;
 import java.util.Collection;
 
 @RunWith(Parameterized.class)
@@ -47,9 +52,11 @@ public class ReadBufferedChannelTest {
                 scenario.getWriteParams().getConstructorParameters().getReadCapacity(),
                 scenario.getWriteParams().getConstructorParameters().getUnpersistedBytesBounds());
 
-        expectedPayload = BufferedChannelUtils.createFullByteBuf(scenario.getWriteParams().getSize());
-        Assertions.assertNotNull(expectedPayload);
-        bufferedChannel.write(expectedPayload);
+        if (bufferedChannel.writeBuffer != null) {
+            expectedPayload = BufferedChannelUtils.createFullByteBuf(scenario.getWriteParams().getSize());
+            Assertions.assertNotNull(expectedPayload);
+            bufferedChannel.write(expectedPayload);
+        }
     }
 
     @Test
@@ -58,19 +65,23 @@ public class ReadBufferedChannelTest {
         if (scenario.getExpectedException() == null) {
             Assertions.assertNotNull(dest);
             int numReadBytes = bufferedChannel.read(dest, scenario.getPos(), scenario.getLength());
-            Assertions.assertEquals(scenario.getLength(), numReadBytes);
+            if (bufferedChannel.writeBuffer != null) {
+                Assertions.assertEquals(scenario.getLength(), numReadBytes);
 
-            // Get the byte from the ByteBuf used for write
-            byte[] expectedBytes = new byte[expectedPayload.readableBytes()];
-            expectedPayload.getBytes(expectedPayload.readerIndex(), expectedBytes);
+                // Get the byte from the ByteBuf used for write
+                byte[] expectedBytes = new byte[expectedPayload.readableBytes()];
+                expectedPayload.getBytes(expectedPayload.readerIndex(), expectedBytes);
 
-            // Get the byte from the ByteBuf used for the read
-            byte[] readByte = new byte[dest.readableBytes()];
-            dest.getBytes(dest.readerIndex(), readByte);
-            if (scenario.getLength() > 0) {
-                Assertions.assertArrayEquals(expectedBytes, readByte);
+                // Get the byte from the ByteBuf used for the read
+                byte[] readByte = new byte[dest.readableBytes()];
+                dest.getBytes(dest.readerIndex(), readByte);
+                if (scenario.getLength() > 0) {
+                    Assertions.assertArrayEquals(expectedBytes, readByte);
+                } else {
+                    Assertions.assertEquals(0, readByte.length);
+                }
             } else {
-                Assertions.assertEquals(0, readByte.length);
+                Assertions.assertEquals(0, numReadBytes);
             }
         } else {
             Assertions.assertThrows(scenario.getExpectedException(), () -> bufferedChannel.read(dest, scenario.getPos(), scenario.getLength()));
