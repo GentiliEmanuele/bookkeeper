@@ -59,6 +59,19 @@ public class ReadBufferedChannelTest {
             Assertions.assertNotNull(dest);
             int numReadBytes = bufferedChannel.read(dest, scenario.getPos(), scenario.getLength());
             Assertions.assertEquals(scenario.getLength(), numReadBytes);
+
+            // Get the byte from the ByteBuf used for write
+            byte[] expectedBytes = new byte[expectedPayload.readableBytes()];
+            expectedPayload.getBytes(expectedPayload.readerIndex(), expectedBytes);
+
+            // Get the byte from the ByteBuf used for the read
+            byte[] readByte = new byte[dest.readableBytes()];
+            dest.getBytes(dest.readerIndex(), readByte);
+            if (scenario.getLength() > 0) {
+                Assertions.assertArrayEquals(expectedBytes, readByte);
+            } else {
+                Assertions.assertEquals(0, readByte.length);
+            }
         } else {
             Assertions.assertThrows(scenario.getExpectedException(), () -> bufferedChannel.read(dest, scenario.getPos(), scenario.getLength()));
         }
