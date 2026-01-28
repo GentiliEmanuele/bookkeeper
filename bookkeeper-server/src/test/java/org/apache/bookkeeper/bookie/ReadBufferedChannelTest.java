@@ -54,11 +54,13 @@ public class ReadBufferedChannelTest {
 
     @Test
     public void testRead() throws Exception {
+        ByteBuf dest = BufferedChannelUtils.createAnEmptyBuffer(scenario.getReadByteBufferSize());
         if (scenario.getExpectedException() == null) {
-            ByteBuf dest = BufferedChannelUtils.createAnEmptyBuffer(scenario.getReadByteBufferSize());
             Assertions.assertNotNull(dest);
             int numReadBytes = bufferedChannel.read(dest, scenario.getPos(), scenario.getLength());
-            Assertions.assertEquals(scenario.getWriteParams().getSize(), numReadBytes);
+            Assertions.assertEquals(scenario.getLength(), numReadBytes);
+        } else {
+            Assertions.assertThrows(scenario.getExpectedException(), () -> bufferedChannel.read(dest, scenario.getPos(), scenario.getLength()));
         }
     }
 }

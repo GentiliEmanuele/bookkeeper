@@ -52,8 +52,8 @@ public class BufferedChannelWriteTest {
     public void testWrite() {
         // Create a byte buff of the specified size and write it in the BufferedChannel
         ByteBuf byteBuf = BufferedChannelUtils.createFullByteBuf(scenario.getSize());
-
         if (scenario.getExpectedException() == null) {
+            Assertions.assertNotNull(byteBuf);
             // Get the position before write operation
             long positionBefore = bufferedChannel.position;
             AtomicLong unpersistedBytesBefore = bufferedChannel.unpersistedBytes;

@@ -39,6 +39,6 @@ public class BufferedChannelUtils {
      * @return the created buffer
      */
     public static ByteBuf createAnEmptyBuffer(int size) {
-        return Unpooled.buffer(size);
+        return size >= 0 ? Unpooled.buffer(size) : null;
     }
 }
