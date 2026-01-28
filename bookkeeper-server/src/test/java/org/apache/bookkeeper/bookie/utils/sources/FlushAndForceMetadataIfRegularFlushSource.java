@@ -162,6 +162,23 @@ public class FlushAndForceMetadataIfRegularFlushSource {
                                 .forceMetadata(true)
                                 .expectedException(null)
                                 .build()
+                },
+                {
+                        FlushAndForceMetadataSource.FlushAndForceMedataParameters.builder()
+                                .constructorParameters(
+                                        ConstructorSources.ThirdConstructorParameters.builder()
+                                                .byteBufAllocator(ByteBufAllocator.DEFAULT)
+                                                .file(BufferedChannelUtils.createTempFile())
+                                                .writeCapacity(1024)
+                                                .readCapacity(0)
+                                                .unpersistedBytesBounds(128)
+                                                .expectedException(null)
+                                                .build()
+                                )
+                                .size(64)
+                                .forceMetadata(true)
+                                .expectedException(null)
+                                .build()
                 }
         });
     }

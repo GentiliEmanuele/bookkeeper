@@ -84,7 +84,60 @@ public class TestImproveCoverage {
             FileChannel fc = raf.getChannel();
             BufferedChannel bufferedChannel = new BufferedChannel(ByteBufAllocator.DEFAULT, fc, 1024, 512, 0);
             bufferedChannel.close();
+            // If the channel is closed, flush ops thrown an exception
+            Assertions.assertFalse(fc.isOpen());
             Assertions.assertDoesNotThrow(bufferedChannel::close);
         }
     }
+
+    @Test
+    public void testWriteOutOfBuffer() throws IOException {
+        // Create a temporary file
+        File tmpFile = BufferedChannelUtils.createTempFile();
+
+        try (RandomAccessFile raf = new RandomAccessFile(tmpFile, "rw")) {
+            FileChannel fc = raf.getChannel();
+            BufferedChannel bufferedChannel = new BufferedChannel(ByteBufAllocator.DEFAULT, fc, 1024, 512, 128);
+            ByteBuf src = BufferedChannelUtils.createFullByteBuf(1500);
+            Assert.assertNotNull(src);
+            Assertions.assertDoesNotThrow(() -> bufferedChannel.write(src));
+            Assertions.assertNotEquals(0, bufferedChannel.position());
+
+            bufferedChannel.flush();
+
+            // Get the byte written with the write operations
+            byte[] expectedBytes = new byte[src.readableBytes()];
+            src.getBytes(src.readerIndex(), expectedBytes);
+
+            // Read bypassing buffered channel
+            raf.seek(0);
+            byte[] actualBytes = new byte[(int) raf.length()];
+            raf.readFully(actualBytes);
+
+            // Compare the bytes
+            Assert.assertArrayEquals(expectedBytes, actualBytes);
+        }
+    }
+
+    @Test
+    public void testFlushAndForceMetadataIfRegularFlush() throws IOException {
+        // This test the method when regularFlush = true and there are byte to write
+        File tmpFile = BufferedChannelUtils.createTempFile();
+
+        RandomAccessFile raf = new RandomAccessFile(tmpFile, "rw");
+        FileChannel fc = raf.getChannel();
+        BufferedChannel bufferedChannel = new BufferedChannel(
+                ByteBufAllocator.DEFAULT,
+                fc,
+                1024,
+                1024,
+                0);
+
+        bufferedChannel.write(BufferedChannelUtils.createFullByteBuf(64));
+        bufferedChannel.flushAndForceWriteIfRegularFlush(false);
+        Assert.assertEquals(0, bufferedChannel.writeBufferStartPosition.get());
+        // If no flush occur expected payload is empty
+        Assertions.assertEquals(0, Files.readAllBytes(tmpFile.toPath()).length);
+    }
+
 }
