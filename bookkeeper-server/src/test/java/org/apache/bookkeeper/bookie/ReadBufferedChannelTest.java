@@ -1,11 +1,8 @@
 package org.apache.bookkeeper.bookie;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
-import io.netty.buffer.Unpooled;
 import org.apache.bookkeeper.bookie.utils.BufferedChannelUtils;
 import org.apache.bookkeeper.bookie.utils.sources.ReadSource;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
@@ -17,8 +14,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
-import java.nio.file.Files;
-import java.util.Arrays;
 import java.util.Collection;
 
 @RunWith(Parameterized.class)

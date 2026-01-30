@@ -140,4 +140,87 @@ public class TestImproveCoverage {
         Assertions.assertEquals(0, Files.readAllBytes(tmpFile.toPath()).length);
     }
 
+    @Test
+    public void killReadMutants() throws IOException {
+        // This test the method when regularFlush = true and there are byte to write
+        File tmpFile = BufferedChannelUtils.createTempFile();
+
+        RandomAccessFile raf = new RandomAccessFile(tmpFile, "rw");
+        FileChannel fc = raf.getChannel();
+
+        BufferedChannel writeBufferedChannel = new BufferedChannel(
+                ByteBufAllocator.DEFAULT,
+                fc,
+                1024,
+                1024,
+                0);
+
+
+        writeBufferedChannel.write(BufferedChannelUtils.createFullByteBuf(512));
+        writeBufferedChannel.flush();
+
+        // After this call writeBufferStartPosition = 512
+        BufferedChannel readBufferedChannel = new BufferedChannel(
+                BufferedChannelUtils.createInvalidByteBufAllocator(),
+                raf.getChannel(),
+                1024,
+                1024,
+                0
+        );
+
+        Assert.assertEquals(512, readBufferedChannel.writeBufferStartPosition.get());
+        ByteBuf dest = BufferedChannelUtils.createAnEmptyBuffer(1024);
+        readBufferedChannel.read(dest, 512, 1024);
+    }
+
+    @Test
+    public void killReadMutants2() throws IOException {
+        // This test the method when regularFlush = true and there are byte to write
+        File tmpFile = BufferedChannelUtils.createTempFile();
+
+        RandomAccessFile raf = new RandomAccessFile(tmpFile, "rw");
+        FileChannel fc = raf.getChannel();
+
+        BufferedChannel bufferedChannel = new BufferedChannel(
+                ByteBufAllocator.DEFAULT,
+                fc,
+                2048,
+                1024,
+                0);
+
+        bufferedChannel.write(BufferedChannelUtils.createFullByteBuf(2048));
+
+        ByteBuf dest = BufferedChannelUtils.createAnEmptyBuffer(1024);
+        bufferedChannel.read(dest, 0, 1024);
+
+        dest.clear();
+
+        bufferedChannel.read(dest, 512, 1024);
+        Assert.assertEquals(2048, bufferedChannel.position);
+    }
+
+    @Test
+    public void killForceWriteMutant() throws IOException {
+        // This test the method when regularFlush = true and there are byte to write
+        File tmpFile = BufferedChannelUtils.createTempFile();
+
+        RandomAccessFile raf = new RandomAccessFile(tmpFile, "rw");
+        FileChannel fc = raf.getChannel();
+
+        BufferedChannel bufferedChannel = new BufferedChannel(
+                ByteBufAllocator.DEFAULT,
+                fc,
+                2048,
+                1024,
+                0);
+
+        ByteBuf expectedPayload = BufferedChannelUtils.createFullByteBuf(512);
+        Assert.assertNotNull(expectedPayload);
+        bufferedChannel.write(expectedPayload);
+        bufferedChannel.forceWrite(false);
+        // Only unpersistedBytesBound > 0 force write call unpersistedBytes.set(writeBuffer.readableBytes())
+        // So if the mutant changes this for >= 0 the following assert must fail
+        Assert.assertNotEquals(bufferedChannel.writeBuffer.readableBytes(), bufferedChannel.unpersistedBytes.get());
+
+    }
 }
