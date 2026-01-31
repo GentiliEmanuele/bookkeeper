@@ -4,6 +4,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;
 import org.apache.bookkeeper.bookie.utils.BufferedChannelUtils;
+import org.apache.bookkeeper.bookie.utils.ForceTrackingFileChannel;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
@@ -256,5 +257,20 @@ public class TestImproveCoverage {
         Assert.assertEquals(512, readBufferedChannel.readBuffer.readableBytes());
         readBufferedChannel.clear();
         Assert.assertEquals(0, readBufferedChannel.readBuffer.readableBytes());
+    }
+
+    @Test
+    public void killForceMutantWithSpy() throws IOException {
+        File tmpFile = BufferedChannelUtils.createTempFile();
+        try (RandomAccessFile raf = new RandomAccessFile(tmpFile, "rw")) {
+            ForceTrackingFileChannel spyChannel = new ForceTrackingFileChannel(raf.getChannel());
+            BufferedChannel bufferedChannel = new BufferedChannel(ByteBufAllocator.DEFAULT , spyChannel, 1024);
+
+            bufferedChannel.forceWrite(true);
+
+            Assert.assertTrue(spyChannel.isForceInvoked());
+            Assert.assertTrue(spyChannel.getLastForceMetadataValue());
+        }
+
     }
 }
