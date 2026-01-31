@@ -17,6 +17,9 @@
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
+  <properties>
+    <argLine></argLine>
+  </properties>
   <parent>
     <artifactId>bookkeeper</artifactId>
     <groupId>org.apache.bookkeeper</groupId>
@@ -237,6 +240,22 @@
       <artifactId>awaitility</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.evosuite</groupId>
+      <artifactId>evosuite-standalone-runtime</artifactId>
+      <version>1.0.6</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.7.36</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+      <version>1.7.36</version>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
@@ -286,6 +305,10 @@
         <configuration>
           <trimStackTrace>false</trimStackTrace>
           <argLine>@{argLine} -Xmx2G -Djava.net.preferIPv4Stack=true</argLine>
+          <excludes>
+            <exclude>org.apache.bookkeeper.client.RackawareEnsemblePlacementPolicy_ESTest</exclude>
+            <exclude>org.apache.bookkeeper.client.RackawareEnsemblePlacementPolicy_ESTest_scaffolding</exclude>
+          </excludes>
           <properties>
             <property>
               <name>listener</name>
@@ -320,56 +343,84 @@
           </execution>
         </executions>
       </plugin>
-
-      <plugin>
-        <groupId>org.jacoco</groupId>
-        <artifactId>jacoco-maven-plugin</artifactId>
-        <version>0.8.11</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>prepare-agent</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>report</id>
-            <phase>test</phase>
-            <goals>
-              <goal>report</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.pitest</groupId>
-        <artifactId>pitest-maven</artifactId>
-        <version>1.15.3</version> <dependencies>
-        <dependency>
-          <groupId>org.pitest</groupId>
-          <artifactId>pitest-junit5-plugin</artifactId>
-          <version>1.2.1</version>
-        </dependency>
-      </dependencies>
-
-        <configuration>
-          <targetClasses>
-            <param>org.apache.bookkeeper.*</param>
-          </targetClasses>
-
-          <targetTests>
-            <param>org.apache.bookkeeper.*</param>
-          </targetTests>
-
-          <outputFormats>
-            <value>HTML</value>
-          </outputFormats>
-
-          <threads>4</threads>
-        </configuration>
-      </plugin>
     </plugins>
   </build>
   <profiles>
+
+    <profile>
+      <id>jacoco</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+            <version>0.8.11</version>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>prepare-agent</goal>
+                </goals>
+              </execution>
+              <execution>
+                <id>report</id>
+                <phase>test</phase>
+                <goals>
+                  <goal>report</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>pit</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.pitest</groupId>
+            <artifactId>pitest-maven</artifactId>
+            <version>1.15.3</version>
+            <executions>
+              <execution>
+                <id>pit-report</id>
+                <phase>test</phase>
+                <goals>
+                  <goal>mutationCoverage</goal>
+                </goals>
+              </execution>
+            </executions>
+            <dependencies>
+              <dependency>
+                <groupId>org.pitest</groupId>
+                <artifactId>pitest-junit5-plugin</artifactId>
+                <version>1.2.1</version>
+              </dependency>
+            </dependencies>
+            <configuration>
+              <targetClasses>
+                <param>org.apache.bookkeeper.client.RackawareEnsemblePlacementPolicy</param>
+                <param>org.apache.bookkeeper.bookie.BufferedChannel</param>
+              </targetClasses>
+              <targetTests>
+                <param>org.apache.bookkeeper.*</param>
+              </targetTests>
+              <excludedTestClasses>
+                <exclude>org.apache.bookkeeper.client.RackawareEnsemblePlacementPolicy_ESTest</exclude>
+                <exclude>org.apache.bookkeeper.client.RackawareEnsemblePlacementPolicy_ESTest_scaffolding</exclude>
+              </excludedTestClasses>
+              <jvmArgs>
+                <value>-Xmx2G</value>
+              </jvmArgs>
+              <outputFormats><value>HTML</value></outputFormats>
+              <threads>4</threads>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
     <profile>
       <id>vertx-http-server</id>
       <dependencies>
