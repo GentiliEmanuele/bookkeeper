@@ -436,6 +436,8 @@
               <includes>
                 <include>org.apache.bookkeeper.client.RackawareEnsemblePlacementPolicy_ESTest</include>
                 <include>org.apache.bookkeeper.client.RackawareEnsemblePlacementPolicy_ESTest_scaffolding</include>
+                <include>org.apache.bookkeeper.bookie.BufferedChannel_ESTest_scaffolding</include>
+                <include>org.apache.bookkeeper.bookie.BufferedChannel_ESTest</include>
               </includes>
               <excludes>
                 <exclude>none</exclude>
