@@ -221,6 +221,40 @@ public class TestImproveCoverage {
         // Only unpersistedBytesBound > 0 force write call unpersistedBytes.set(writeBuffer.readableBytes())
         // So if the mutant changes this for >= 0 the following assert must fail
         Assert.assertNotEquals(bufferedChannel.writeBuffer.readableBytes(), bufferedChannel.unpersistedBytes.get());
+    }
 
+    @Test
+    public void clearKillMutant() throws IOException {
+        // This test the method when regularFlush = true and there are byte to write
+        File tmpFile = BufferedChannelUtils.createTempFile();
+
+        RandomAccessFile raf = new RandomAccessFile(tmpFile, "rw");
+        FileChannel fc = raf.getChannel();
+
+        BufferedChannel bufferedChannel = new BufferedChannel(
+                ByteBufAllocator.DEFAULT,
+                fc,
+                2048,
+                1024,
+                0);
+
+        ByteBuf expectedPayload = BufferedChannelUtils.createFullByteBuf(512);
+        Assert.assertNotNull(expectedPayload);
+        bufferedChannel.write(expectedPayload);
+        bufferedChannel.flush();
+
+        BufferedChannel readBufferedChannel = new BufferedChannel(
+                ByteBufAllocator.DEFAULT,
+                fc,
+                2048,
+                1024,
+                0);
+
+        ByteBuf dest = BufferedChannelUtils.createAnEmptyBuffer(1024);
+        Assert.assertNotNull(dest);
+        readBufferedChannel.read(dest, 0, 512);
+        Assert.assertEquals(512, readBufferedChannel.readBuffer.readableBytes());
+        readBufferedChannel.clear();
+        Assert.assertEquals(0, readBufferedChannel.readBuffer.readableBytes());
     }
 }
