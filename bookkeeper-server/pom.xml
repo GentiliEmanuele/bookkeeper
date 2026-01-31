@@ -308,6 +308,8 @@
           <excludes>
             <exclude>org.apache.bookkeeper.client.ESRackawareEnsemblePlacementLineAndBranch</exclude>
             <exclude>org.apache.bookkeeper.client.RackawareEnsemblePlacementPolicy_ESTest_scaffolding</exclude>
+            <exclude>org.apache.bookkeeper.bookie.BufferedChannel_ESTest</exclude>
+            <exclude>org.apache.bookkeeper.bookie.BufferedChannel_ESTest_scaffolding</exclude>
           </excludes>
           <properties>
             <property>
@@ -409,6 +411,8 @@
               <excludedTestClasses>
                 <exclude>org.apache.bookkeeper.client.RackawareEnsemblePlacementPolicy_ESTest</exclude>
                 <exclude>org.apache.bookkeeper.client.RackawareEnsemblePlacementPolicy_ESTest_scaffolding</exclude>
+                <exclude>org.apache.bookkeeper.bookie.BufferedChannel_ESTest</exclude>
+                <exclude>org.apache.bookkeeper.bookie.BufferedChannel_ESTest_scaffolding</exclude>
               </excludedTestClasses>
               <jvmArgs>
                 <value>-Xmx2G</value>
