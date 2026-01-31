@@ -407,7 +407,7 @@
                 <param>org.apache.bookkeeper.*</param>
               </targetTests>
               <excludedTestClasses>
-                <exclude>org.apache.bookkeeper.client.ESRackawareEnsemblePlacementLineAndBranch</exclude>
+                <exclude>org.apache.bookkeeper.client.RackawareEnsemblePlacementPolicy_ESTest</exclude>
                 <exclude>org.apache.bookkeeper.client.RackawareEnsemblePlacementPolicy_ESTest_scaffolding</exclude>
               </excludedTestClasses>
               <jvmArgs>
@@ -430,7 +430,7 @@
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
               <includes>
-                <include>org.apache.bookkeeper.client.ESRackawareEnsemblePlacementLineAndBranch</include>
+                <include>org.apache.bookkeeper.client.RackawareEnsemblePlacementPolicy_ESTest</include>
                 <include>org.apache.bookkeeper.client.RackawareEnsemblePlacementPolicy_ESTest_scaffolding</include>
               </includes>
               <excludes>
