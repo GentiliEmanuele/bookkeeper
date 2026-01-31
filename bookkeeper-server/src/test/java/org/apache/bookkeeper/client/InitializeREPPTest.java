@@ -1,7 +1,7 @@
 package org.apache.bookkeeper.client;
 
-import org.apache.bookkeeper.util.InitializeSource;
-import org.apache.bookkeeper.util.RackAwarePPTestUtils;
+import org.apache.bookkeeper.client.util.InitializeSource;
+import org.apache.bookkeeper.client.util.RackAwarePPTestUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;

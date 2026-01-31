@@ -1,6 +1,6 @@
 package org.apache.bookkeeper.client;
 
-import org.apache.bookkeeper.util.ConstructorSource;
+import org.apache.bookkeeper.client.util.ConstructorSource;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;

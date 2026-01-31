@@ -1,4 +1,4 @@
-package org.apache.bookkeeper.util;
+package org.apache.bookkeeper.client.util;
 
 import io.netty.util.HashedWheelTimer;
 import lombok.Builder;

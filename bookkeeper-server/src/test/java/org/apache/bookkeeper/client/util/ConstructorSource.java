@@ -1,4 +1,4 @@
-package org.apache.bookkeeper.util;
+package org.apache.bookkeeper.client.util;
 
 
 import java.util.Arrays;
