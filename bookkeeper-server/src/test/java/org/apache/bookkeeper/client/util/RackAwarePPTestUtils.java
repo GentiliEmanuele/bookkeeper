@@ -1,0 +1,167 @@
+package org.apache.bookkeeper.client.util;
+
+import io.netty.util.HashedWheelTimer;
+import io.netty.util.Timeout;
+import io.netty.util.TimerTask;
+import org.apache.bookkeeper.client.RackawareEnsemblePlacementPolicy;
+import org.apache.bookkeeper.net.BookieId;
+import org.apache.bookkeeper.net.BookieSocketAddress;
+import org.apache.bookkeeper.net.DNSToSwitchMapping;
+import org.apache.bookkeeper.proto.BookieAddressResolver;
+import org.apache.bookkeeper.stats.Counter;
+import org.apache.bookkeeper.stats.OpStatsLogger;
+import org.apache.bookkeeper.stats.StatsLogger;
+
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+public class RackAwarePPTestUtils {
+
+    private static final Map<Integer, BookieId> bookieIdMap = new HashMap<>();
+
+    /**
+     * Mock the DNSToSwitchMapping
+     * @param numberOfRacks number of the racks
+     * @param bookieIds id of the bookie
+     * @return the mocked DNSToSwitchMapping
+     */
+    public static DNSToSwitchMapping mockDNSToSwitchMapping(int numberOfRacks, List<Integer> bookieIds) {
+        DNSToSwitchMapping resolver = mock(DNSToSwitchMapping.class);
+
+        Map<String, String> rackMapping = new HashMap<>();
+        if (numberOfRacks <= 1) {
+            for (Integer id : bookieIds) {
+                rackMapping.put("127.0.0." + id, "/default-region/default-rack");
+            }
+        } else {
+            int rackIndex = 0;
+            for (Integer id : bookieIds) {
+                String rackPath = String.format("/default-region/rack-%d", rackIndex);
+                rackMapping.put("127.0.0." + id, rackPath);
+                rackIndex = (rackIndex + 1) % numberOfRacks;
+            }
+        }
+
+        when(resolver.resolve(anyList())).thenAnswer(invocation -> {
+            List<String> names = invocation.getArgument(0);
+            List<String> racks = new ArrayList<>();
+            for (String name : names) {
+                racks.add(rackMapping.getOrDefault(name, "/default-region/default-rack"));
+            }
+            return racks;
+        });
+
+        return resolver;
+    }
+
+    /**
+     * Create a BookieSocketAddress and parse it in an BookieId
+     * @param index : index correspondent to the bookie id
+     * @param address : address for the bookie socket
+     * @param port : port for the bookie socket
+     * @return the created bookie id
+     */
+    public static BookieId createBookieId(int index, String address, int port) {
+        if (bookieIdMap.containsKey(index)) {
+            return bookieIdMap.get(index);
+        } else {
+            BookieSocketAddress bookieSocketAddress = new BookieSocketAddress(address, port);
+            bookieIdMap.put(index, bookieSocketAddress.toBookieId());
+            return bookieSocketAddress.toBookieId();
+        }
+    }
+
+    /**
+     * Create a BookieAddressResolver that return a correspondence for the specified BookieId
+     * @param bookiesCanBeSolved : the number of the bookie that can be solved
+     * @return the created bookieAddressResolver
+     */
+    public static BookieAddressResolver resolveSpecifiedAddress(Set<BookieId> bookiesCanBeSolved) {
+        BookieAddressResolver resolver = mock(BookieAddressResolver.class);
+        when(resolver.resolve(any(BookieId.class))).thenAnswer(invocation -> {
+            BookieId bookieId = invocation.getArgument(0);
+            if (bookiesCanBeSolved.contains(bookieId)) {
+                String [] splitBookieId = bookieId.toString().split(":");
+                return new BookieSocketAddress(splitBookieId[0], Integer.parseInt(splitBookieId[1]));
+            } else throw new BookieAddressResolver.BookieIdNotResolvedException(bookieId, new Exception("Simulated resolution failure for testing"));
+        });
+        return resolver;
+    }
+
+    /**
+     * Create a BookieAddressResolver that resolve @numBookiesCanBeSolved address
+     * @param bookiesIdx : list of the bookies indices that can be solved
+     * @return the created BookieAddressResolver
+     */
+    public static BookieAddressResolver wrapperCreationBookieAddressResolver(List<Integer> bookiesIdx) {
+        Set<BookieId> bookiesCanBeSolved = toBookieIdSet(bookiesIdx);
+        return resolveSpecifiedAddress(bookiesCanBeSolved);
+    }
+
+    /**
+     * Used for construct the read-only and the writable bookie id set
+     * @param bookieIdx indices used for construct the set of bookie
+     * @return the created set
+     */
+    public static Set<BookieId> toBookieIdSet(List<Integer> bookieIdx) {
+        if (bookieIdx == null) return null;
+        Set<BookieId> bookies = new HashSet<>();
+        for (Integer index : bookieIdx) {
+            BookieId bookieId = createBookieId(index, String.format("127.0.0.%d", index), 3181);
+            bookies.add(bookieId);
+        }
+        return bookies;
+    }
+
+    public static RackawareEnsemblePlacementPolicy rackAwareEnsemblePlacementPolicyCreation(Boolean enforceDurability) {
+        return enforceDurability != null ? new RackawareEnsemblePlacementPolicy(enforceDurability) : new RackawareEnsemblePlacementPolicy();
+    }
+
+    public static int countRacks(Collection<Integer> bookies, int configNumRacks) {
+        if (bookies == null || bookies.isEmpty()) {
+            return 0;
+        }
+
+        if (configNumRacks <= 1) {
+            return 1;
+        }
+
+        Set<Integer> uniqueRackIndexes = new HashSet<>();
+
+        for (Integer bookieId : bookies) {
+            int rackIndex = (bookieId - 1) % configNumRacks;
+            uniqueRackIndexes.add(rackIndex);
+        }
+
+        return uniqueRackIndexes.size();
+    }
+
+    public static HashedWheelTimer mockTimer() {
+        // Mock for the timer
+        HashedWheelTimer mockTimer = mock(HashedWheelTimer.class);
+        when(mockTimer.newTimeout(any(TimerTask.class), anyLong(), any(TimeUnit.class)))
+                .thenReturn(mock(Timeout.class));
+        return mockTimer;
+    }
+
+    public static StatsLogger mockStatsLogger() {
+        // Mock for the statsLogger
+        StatsLogger mockStatsLogger = mock(StatsLogger.class);
+        Counter mockCounter = mock(Counter.class);
+        when(mockStatsLogger.getCounter(anyString())).thenReturn(mockCounter);
+        OpStatsLogger opStatsLogger = mock(OpStatsLogger.class);
+        when(mockStatsLogger.getOpStatsLogger(anyString())).thenReturn(opStatsLogger);
+        return mockStatsLogger;
+    }
+
+    public static Map<String, byte[]> getValidCustomMetadata() {
+        Map<String, byte[]> metadata = new HashMap<>();
+        metadata.put("ledger.type", "write-ahead-log".getBytes(StandardCharsets.UTF_8));
+        return metadata;
+    }
+}
