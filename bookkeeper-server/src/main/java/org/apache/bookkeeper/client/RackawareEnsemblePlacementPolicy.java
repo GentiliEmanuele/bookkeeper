@@ -21,6 +21,9 @@ import io.netty.util.HashedWheelTimer;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.apache.bookkeeper.client.BKException.BKNotEnoughBookiesException;
 import org.apache.bookkeeper.net.BookieId;
 import org.apache.bookkeeper.net.BookieNode;
@@ -105,14 +108,19 @@ public class RackawareEnsemblePlacementPolicy extends RackawareEnsemblePlacement
         }
     }
 
+
     @Override
     public Set<BookieId> onClusterChanged(Set<BookieId> writableBookies,
-            Set<BookieId> readOnlyBookies) {
-        Set<BookieId> deadBookies = super.onClusterChanged(writableBookies, readOnlyBookies);
-        if (null != slave) {
-            deadBookies = slave.onClusterChanged(writableBookies, readOnlyBookies);
-        }
-        return deadBookies;
+                                          Set<BookieId> readOnlyBookies) {
+
+        Stream<BookieId> streamSuper = super.onClusterChanged(writableBookies, readOnlyBookies).stream();
+
+        Stream<BookieId> streamSlave = (slave != null)
+                ? slave.onClusterChanged(writableBookies, readOnlyBookies).stream()
+                : Stream.empty();
+
+        return Stream.concat(streamSuper, streamSlave)
+                .collect(Collectors.toSet());
     }
 
     @Override
